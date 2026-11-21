@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 7 complete** (5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents and 21 analyses computed; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md)
+> Status: **Phase 8 complete** (5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md)
 
 ## Requirements (Windows)
 
@@ -54,6 +54,15 @@ data sources and instruments. Safe to re-run; it never deletes data.
 
 ```powershell
 .venv\Scripts\python scripts\analyze_data.py all      # Phase 7: sectors, indicators, analytics, report
+```
+
+## Big-data processing (optional: needs `pip install pyspark pyarrow` and JDK 17)
+
+```powershell
+.venv\Scripts\python scripts\bigdata.py check        # does Spark start?
+.venv\Scripts\python scripts\bigdata.py export       # MongoDB -> Parquet
+.venv\Scripts\python scripts\bigdata.py analytics    # Spark analyses -> analytics_results
+.venv\Scripts\python scripts\bigdata.py benchmark    # pandas vs MongoDB vs Spark
 ```
 
 ## Run the tests

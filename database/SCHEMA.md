@@ -131,6 +131,10 @@ One document per analysis: `{analysis_type, scope, interval, result, data_range,
 trend, market_breadth, sector_performance, volatility, volume_analysis, correlation, index_analysis) and
 `{"history": "all"}` for return_distribution, historical_statistics and outliers.
 Re-running replaces the document with the same `analysis_type` and `scope`. Details: [docs/ANALYTICS.md](../docs/ANALYTICS.md).
+Phase 8 adds six Spark analyses with `scope {"engine": "spark"}` (`spark_returns_volatility`, `spark_sector_returns`,
+`spark_correlation`, `spark_market_trend`, `spark_intraday_realised_vol`, `spark_resample_validation`) and the benchmark
+measurements in `benchmark_results` (`technology` = pandas, mongodb_aggregation or pyspark; `is_synthetic` false).
+See [docs/BIGDATA.md](../docs/BIGDATA.md).
 
 ## Seed data (created by `init_db.py`)
 
