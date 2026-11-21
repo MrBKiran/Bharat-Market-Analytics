@@ -1,0 +1,90 @@
+# Data sources (Phase 4)
+
+All raw files live under `data/raw/<source>/` and are git-ignored. Each downloaded file has a
+`<file>.meta.json` sidecar with `source`, `data_class`, `retrieved_at` (UTC), `rows`, `size_bytes`, `sha256`
+and, for Kaggle, the dataset `license`. The importer (Phase 5) copies these into MongoDB.
+
+## Which source gives what
+
+| Source | Class | Depth | Volume | How we get it | Rules |
+|---|---|---|---|---|---|
+| Yahoo Finance (`yfinance`) | delayed | Daily/weekly/monthly: many years. 1h: 730 days, 5m-30m: 60 days, 1m: 7 days | Tens of thousands of rows | `download_data.py yfinance` | Unofficial, personal/research use only |
+| Kaggle datasets | historical | Varies per dataset (e.g. 1-minute NIFTY data 2015-2024, NIFTY 50 daily 2000-2021) | Up to millions of rows | `download_data.py kaggle-download` | Each dataset has its own license, recorded in the sidecar |
+| NSE bhavcopy | historical | Official end-of-day, all listed equities | Millions of rows over many years | **Manual download only** | NSE's [Terms of Use](https://www.nseindia.com/nse-terms-of-use) prohibit automated scraping |
+| BSE bhavcopy | historical | Official end-of-day | Millions of rows over many years | **Manual download only** | Read BSE's terms first |
+| RBI / MOSPI | historical | Macro series | Small | Manual download (Phase 7 uses it) | Cite the publication |
+| Synthetic benchmark | synthetic | n/a | 100K to 10M | Generated in Phase 14 | Never mixed with real data (`is_synthetic: true`) |
+
+Real vs synthetic: only real data counts toward "real records". The 5M and 10M benchmark sizes will use
+clearly labelled synthetic data.
+
+## Yahoo Finance
+
+```powershell
+.venv\Scripts\python scripts\download_data.py verify                 # does Yahoo know all 16 tickers? saves nothing
+.venv\Scripts\python scripts\download_data.py yfinance --interval 1d # longest daily history
+.venv\Scripts\python scripts\download_data.py yfinance --interval 5m --symbols NIFTY_50 RELIANCE
+.venv\Scripts\python scripts\download_data.py inventory              # what we have so far
+```
+
+- Output: `data/raw/yfinance/<interval>/<SYMBOL>_<EXCHANGE>.csv`, for example `data/raw/yfinance/1d/RELIANCE_NSE.csv`.
+- Prices are **already adjusted by Yahoo for splits and bonus issues** (e.g. RELIANCE is continuous across its
+  2024 bonus issue), and apparently for other price-changing events too: on 2021-04-30 RELIANCE's raw NSE close
+  is 1994.50 but Yahoo's is 920.46 (ratio 2.167, not the 2.0 a 1:1 bonus alone would give), consistent with an
+  adjustment for the 2023 Jio Financial Services demerger (cause not verified). Dividends are not applied to
+  Open/High/Low/Close; the `Adj Close` column includes them. Phase 6 must NOT apply corporate actions to this
+  source again. Dividends and stock splits come in the same file and feed `corporate_actions` in Phase 6.
+  Stored with `price_basis = split_adjusted`; compare against the raw NSE-based Kaggle prices
+  (`price_basis = raw`) when you need as-traded values.
+- Known quirk: very old rows can have tiny split-adjusted prices (about 0.78 INR for INFY in 1996) where
+  rounding makes High/Low inconsistent. In the first download 86 of 99,748 rows (INFY, HDFCBANK, ITC, SBIN)
+  failed the High/Low rules; the database validator would reject them, so Phase 6 cleaning handles them.
+- Verified (Nov 2026): all 16 tickers work, including the index tickers `^NSEI`, `^NSEBANK`, `^CNXIT`,
+  `NIFTY_FIN_SERVICE.NS`, `^BSESN` and `BSE-500.BO`.
+- Timestamps are in IST (`+05:30`); the importer converts them to UTC.
+- Safe to re-run: finished files are skipped unless you pass `--force`. Failed tickers don't stop the others.
+- Yahoo limits intraday history; for long intraday history use Kaggle or a broker API.
+
+## Kaggle
+
+1. Create a free account at https://www.kaggle.com/ and open https://www.kaggle.com/settings.
+2. In the **API** section create a token. Kaggle shows the current method; either form works:
+   - new token: add `KAGGLE_API_TOKEN=<token>` to your project `.env`
+   - legacy token: add `KAGGLE_USERNAME=<name>` and `KAGGLE_KEY=<key>` to `.env`
+3. **You** paste the token into `.env` yourself. Never put it in chat, code or a commit. `.env` is git-ignored.
+4. See what a dataset contains **before** downloading:
+
+```powershell
+.venv\Scripts\python scripts\download_data.py kaggle-info debashis74017/nifty-50-minute-data
+.venv\Scripts\python scripts\download_data.py kaggle-download debashis74017/nifty-50-minute-data
+```
+
+Candidate datasets (check the license and size on the page; Kaggle pages change):
+
+| Dataset | Content |
+|---|---|
+| `debashis74017/nifty-50-minute-data` | 680 files, one per index and bar size. We use NIFTY 50, BANK, IT and FIN SERVICE in 1m/5m/15m/60m/daily: 5.42 million rows, 2015 to May 2026 (about 1.05 million 1-minute rows per index) |
+| `debashis74017/nifty-bank-minute-data` | NIFTY BANK index, 1-minute bars |
+| `rohanrao/nifty50-stock-market-data` | NIFTY 50 stocks, daily, 2000 to April 2021 |
+
+## NSE and BSE bhavcopy (manual)
+
+1. Open https://www.nseindia.com/all-reports (or https://www.nseindia.com/market-data) and find the
+   **Equity bhavcopy** reports; for BSE use https://www.bseindia.com/markets/MarketInfo/BhavCopy.aspx.
+2. Download the days you need in your browser. Keep the original file names.
+3. Put them in `data/raw/nse_bhavcopy/` or `data/raw/bse_bhavcopy/`. Do not edit them.
+4. Use them for personal/academic work only. Do not redistribute or commit them (they are git-ignored).
+   For bulk historical use, NSE sells licensed data (see NSE Data & Analytics).
+
+Phase 5 reads the current NSE "UDiFF" bhavcopy layout (columns such as `TradDt`, `TckrSymb`, `OpnPric`,
+`HghPric`, `LwPric`, `ClsPric`, `TtlTradgVol`). Check the first row of a file you download.
+
+## Troubleshooting
+
+| Problem | Cause and fix |
+|---|---|
+| `Kaggle sign-in failed` | Token missing or wrong. Re-check `.env` (no quotes or spaces around `=`). |
+| `FAIL ... no data returned` for a ticker | Wrong Yahoo ticker, or Yahoo is rate-limiting. Run `verify` again after a minute; if one ticker keeps failing, correct `yfinance_symbol` in `seed_data.py`. |
+| Many tickers fail at once | Rate limit. Re-run with `--pause 3`; finished files are skipped. |
+| A file stops half-way | Safe: downloads are written to `.part` first and renamed when complete. Re-run the same command. |
+| Intraday history is short | Yahoo's limit (7 days for 1m, 60 days for 5m-30m). Use Kaggle for more. |

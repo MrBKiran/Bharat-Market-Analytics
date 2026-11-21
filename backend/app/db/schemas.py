@@ -37,7 +37,8 @@ BENCHMARK_TECHNOLOGIES = ("pandas", "mongodb_aggregation", "pyspark", "ingestion
 # Time-series options shared by the two time-series collections.
 TIMESERIES_OPTIONS = {"timeField": "ts", "metaField": "meta", "granularity": "minutes"}
 # Fields every intraday document must carry (checked by the importer, not by MongoDB).
-INTRADAY_META_FIELDS = ("symbol", "exchange", "interval", "instrument_type", "source", "is_synthetic")
+INTRADAY_META_FIELDS = ("symbol", "exchange", "interval", "instrument_type", "source", "is_synthetic",
+                        "price_basis")
 INTRADAY_VALUE_FIELDS = ("ts", "open", "high", "low", "close", "volume")
 
 # ----------------------------------------------------------------------------
@@ -117,6 +118,10 @@ def _bar_properties(extra: Optional[dict] = None) -> dict:
         "source": STR,
         "retrieved_at": DATE,
         "is_synthetic": BOOL,
+        # raw = as traded; split_adjusted = provider already adjusted prices for splits/bonuses (and
+        # possibly other events such as demergers; dividends excluded) - do NOT adjust again;
+        # index_level = an index value (no adjustment applies)
+        "price_basis": enum("raw", "split_adjusted", "index_level"),
         "import_job_id": STR,
         "quality_flags": ARR,
     }
@@ -147,8 +152,11 @@ STOCK_PRICES = CollectionSpec(
         }),
     )),
     indexes=(
-        IndexSpec("uq_symbol_exchange_interval_date",
-                  (("symbol", ASC), ("exchange", ASC), ("interval", ASC), ("date", ASC)), unique=True),
+        # `source` is part of the key so the same bar from two providers (e.g. Yahoo split-adjusted
+        # and NSE raw) can coexist; queries pick a source or compare them.
+        IndexSpec("uq_symbol_exchange_interval_source_date",
+                  (("symbol", ASC), ("exchange", ASC), ("interval", ASC), ("source", ASC), ("date", ASC)),
+                  unique=True),
         IndexSpec("idx_date_interval", (("date", DESC), ("interval", ASC))),
     ),
 )
@@ -158,8 +166,9 @@ MARKET_INDICES = CollectionSpec(
     description="Daily/weekly/monthly OHLC bars for indices (NIFTY 50, SENSEX, ...). Volume is optional.",
     validator=with_ohlc(schema(_BAR_REQUIRED, _bar_properties())),
     indexes=(
-        IndexSpec("uq_symbol_exchange_interval_date",
-                  (("symbol", ASC), ("exchange", ASC), ("interval", ASC), ("date", ASC)), unique=True),
+        IndexSpec("uq_symbol_exchange_interval_source_date",
+                  (("symbol", ASC), ("exchange", ASC), ("interval", ASC), ("source", ASC), ("date", ASC)),
+                  unique=True),
         IndexSpec("idx_date_interval", (("date", DESC), ("interval", ASC))),
     ),
 )
@@ -476,6 +485,13 @@ BENCHMARK_RESULTS = CollectionSpec(
         IndexSpec("idx_tech_op_count", (("technology", ASC), ("operation", ASC), ("record_count", ASC))),
         IndexSpec("idx_run_id", (("run_id", ASC),)),
     ),
+)
+
+# Indexes from earlier versions of the schema that setup_database() must drop
+# (their replacement has a different key, so MongoDB cannot update them in place).
+OBSOLETE_INDEXES = (
+    ("stock_prices", "uq_symbol_exchange_interval_date"),
+    ("market_indices", "uq_symbol_exchange_interval_date"),
 )
 
 # The 12 collections required by the project brief, then the supporting ones.

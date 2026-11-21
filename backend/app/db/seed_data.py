@@ -4,7 +4,7 @@ Seeding is idempotent and never overwrites values you change later
 (`active`, `last_success_at`, `created_at` are only set on first insert).
 
 NOTE: `yfinance_symbol` values are the commonly used Yahoo Finance tickers.
-They are checked against real downloads in Phase 4.
+All 16 were verified against Yahoo in Phase 4 (Nov 2026).
 """
 
 # Canonical symbol rule: UPPER CASE, no spaces, no exchange suffix.

@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 3 complete** (MongoDB collections, validators, indexes, seed data).
-> Schema documentation: [database/SCHEMA.md](database/SCHEMA.md)
+> Status: **Phase 5 complete** (5.76 million real rows imported; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md)
 
 ## Requirements (Windows)
 
@@ -35,6 +35,14 @@ copy .env.example .env
 
 Creates `BharatMarketDB` with all collections, validators and indexes, and seeds the
 data sources and instruments. Safe to re-run; it never deletes data.
+
+## Download and import data
+
+```powershell
+.venv\Scripts\python scripts\download_data.py yfinance --interval 1d     # Phase 4 (Kaggle: see docs/DATA_SOURCES.md)
+.venv\Scripts\python scripts\import_data.py import data\raw\yfinance data\raw\kaggle --auto-register   # Phase 5
+.venv\Scripts\python scripts\import_data.py summary
+```
 
 ## Run the tests
 

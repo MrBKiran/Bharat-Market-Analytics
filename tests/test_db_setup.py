@@ -69,6 +69,24 @@ def test_duplicate_bar_rejected_by_unique_index(db):
         db["stock_prices"].insert_one(good_bar(close=101))
 
 
+def test_same_bar_from_two_sources_can_coexist(db):
+    """Yahoo (split-adjusted) and NSE (raw) may both hold the same day; the same source may not."""
+    db["stock_prices"].insert_one(good_bar(source="yfinance", price_basis="split_adjusted"))
+    db["stock_prices"].insert_one(good_bar(source="kaggle", price_basis="raw", close=104.5))
+    assert db["stock_prices"].count_documents({"symbol": "RELIANCE"}) == 2
+    with pytest.raises(DuplicateKeyError):
+        db["stock_prices"].insert_one(good_bar(source="kaggle", price_basis="raw"))
+
+
+def test_obsolete_index_is_dropped_on_upgrade(db):
+    """A database created before `source` joined the key is migrated by re-running setup."""
+    db["stock_prices"].create_index([("symbol", 1), ("exchange", 1), ("interval", 1), ("date", 1)],
+                                    name="uq_symbol_exchange_interval_date", unique=True)
+    report = setup_database(db)
+    assert "stock_prices.uq_symbol_exchange_interval_date" in report["indexes_dropped"]
+    assert "uq_symbol_exchange_interval_date" not in db["stock_prices"].index_information()
+
+
 @pytest.mark.parametrize("bad", [
     {"high": 90.0},                  # high below low
     {"low": 120.0},                  # low above high

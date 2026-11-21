@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pymongo import UpdateOne
 from pymongo.database import Database
 
-from app.db.schemas import COLLECTIONS, CollectionSpec
+from app.db.schemas import COLLECTIONS, OBSOLETE_INDEXES, CollectionSpec
 from app.db.seed_data import INSTRUMENTS, SOURCES
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,15 @@ def _ensure_collection(db: Database, spec: CollectionSpec, existing: set[str], r
             msg = f"{spec.name} exists but is not the expected time-series collection"
             report["warnings"].append(msg)
             logger.warning(msg)
+
+
+def _drop_obsolete_indexes(db: Database, collection: str, report: dict) -> None:
+    present = set(db[collection].index_information())
+    for coll_name, index_name in OBSOLETE_INDEXES:
+        if coll_name == collection and index_name in present:
+            db[collection].drop_index(index_name)
+            report.setdefault("indexes_dropped", []).append(f"{collection}.{index_name}")
+            logger.info("Dropped obsolete index %s.%s", collection, index_name)
 
 
 def _ensure_indexes(db: Database, spec: CollectionSpec, report: dict) -> None:
@@ -96,6 +105,7 @@ def setup_database(db: Database, seed: bool = True) -> dict:
     existing = set(db.list_collection_names())
     for spec in COLLECTIONS:
         _ensure_collection(db, spec, existing, report)
+        _drop_obsolete_indexes(db, spec.name, report)
         _ensure_indexes(db, spec, report)
     if seed:
         _seed(db, report)

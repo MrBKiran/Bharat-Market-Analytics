@@ -15,7 +15,9 @@ Create or update everything with `.venv\Scripts\python scripts\init_db.py` (safe
 | Intervals | Daily collections: `1d`, `1w`, `1M`. Intraday: `1m`, `5m`, `15m`, `30m`, `1h`. |
 | Source tracking | Every price row has `source` (a `market_sources.source_id`) and `retrieved_at`. |
 | Real vs synthetic | Every price row has `is_synthetic`. Benchmark data is always `true`; real market data is always `false`. |
-| Numbers | Prices accept int, long, double or decimal. Prices must be `> 0`, volume `>= 0`. |
+| Numbers | Prices accept int, long, double or decimal (the importer always stores prices as doubles). Prices must be `> 0`, volume `>= 0`. |
+| Several sources | `source` is part of the unique key, so the same bar from two providers can coexist (e.g. Yahoo and NSE-based Kaggle data). Always filter by `source` (or compare them) in queries. |
+| `price_basis` | `raw` = as traded; `split_adjusted` = the provider already adjusted for splits (never adjust again); `index_level` = an index value. |
 
 ## Two kinds of collections (and why)
 
@@ -34,9 +36,9 @@ Daily bars stay in a regular collection because they need exact de-duplication a
 
 | Collection | Type | Purpose | Unique key | Other indexes |
 |---|---|---|---|---|
-| `stock_prices` | regular | Daily/weekly/monthly equity and ETF bars | `symbol, exchange, interval, date` | `date desc, interval` |
+| `stock_prices` | regular | Daily/weekly/monthly equity and ETF bars | `symbol, exchange, interval, source, date` | `date desc, interval` |
 | `intraday_prices` | time-series | 1m-1h bars | (importer-enforced) | `meta.symbol, meta.exchange, meta.interval, ts desc` |
-| `market_indices` | regular | Daily/weekly/monthly index bars (volume optional) | `symbol, exchange, interval, date` | `date desc, interval` |
+| `market_indices` | regular | Daily/weekly/monthly index bars (volume optional) | `symbol, exchange, interval, source, date` | `date desc, interval` |
 | `instruments` | regular | Master list of equities, indices, ETFs, derivatives | `exchange, symbol, instrument_type, expiry, strike, option_type` | `sector` |
 | `corporate_actions` | regular | Splits, bonuses, dividends | `symbol, exchange, action_type, ex_date` | none |
 | `market_sources` | regular | Data providers and their access rules | `source_id` | none |
@@ -99,12 +101,14 @@ Rule enforced by the database: `high >= low, open, close` and `low <= open, clos
   `data_class` is one of `historical`, `delayed`, `real_time`, `synthetic`.
 - **`instruments` (16):** 10 NSE equities (RELIANCE, TCS, HDFCBANK, ICICIBANK, INFY, SBIN, ITC, BHARTIARTL, LT, AXISBANK)
   and 6 indices (NIFTY_50, NIFTY_BANK, NIFTY_IT, NIFTY_FIN_SERVICE, SENSEX, BSE_500).
-  Yahoo tickers are verified against real downloads in Phase 4.
+  Yahoo tickers were verified against real downloads in Phase 4 (Nov 2026).
 
 Re-running the script never overwrites values you changed (`active`, `last_success_at`, `created_at`).
 
-## Importer notes for Phase 5
+## How data gets in (Phase 5)
 
-- Convert pandas/NumPy values to plain Python types before inserting (`np.int64` is not a valid BSON type).
-- Use `insert_many(..., ordered=False)` for daily data: duplicates are rejected by the unique index while the rest still load.
-- For `intraday_prices`: check `import_files` (file hash), then skip bars inside the stored `intraday_coverage` range, validate in Python, then insert.
+See [docs/IMPORTER.md](../docs/IMPORTER.md). In short: files are hashed (`import_files`), validated in
+pandas, de-duplicated (unique index for daily data; an exact timestamp lookup for the time-series
+collection), inserted in chunks, and tracked in `processing_jobs` so an interrupted import resumes
+without storing any bar twice. Rejected rows are saved to `data/rejected/` and summarised in
+`data_quality_reports`.
