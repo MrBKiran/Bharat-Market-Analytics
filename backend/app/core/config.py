@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     # --- API ---
     # Comma-separated list of allowed browser origins (the React dev server).
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Endpoints that change data (import, processing, instrument edits, storing backtests) need this key in the
+    # `X-API-Key` header. Unset in development: they are open on localhost. Unset in production: they are disabled.
+    api_key: Optional[SecretStr] = None
+    # Per client IP, per minute. Heavy endpoints (backtests, imports, processing) get the smaller limit.
+    rate_limit_enabled: bool = True
+    rate_limit_per_minute: int = 300
+    heavy_rate_limit_per_minute: int = 20
 
     # --- Files ---
     data_dir: Path = BASE_DIR / "data"

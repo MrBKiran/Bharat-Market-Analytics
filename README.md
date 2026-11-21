@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 9 complete** (5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md)
+> Status: **Phase 10 complete** (34 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md)
 
 ## Requirements (Windows)
 
@@ -25,7 +25,9 @@ copy .env.example .env
 ```
 
 - Health check: http://127.0.0.1:8000/api/health
-- Interactive API docs: http://127.0.0.1:8000/docs
+- Interactive API docs (try every endpoint in the browser): http://127.0.0.1:8000/docs
+- 34 endpoints: market data, instruments, indicators, analytics, comparison, import, processing, backtesting. Endpoints that change
+  data need the `X-API-Key` header when `API_KEY` is set in `.env`; all endpoints are rate limited. See [docs/API.md](docs/API.md).
 
 ## Set up the database
 
