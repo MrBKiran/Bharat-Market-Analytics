@@ -38,7 +38,9 @@ MAX_GAP_DAYS = 7          # a jump after a longer data gap cannot be told apart 
 NICE_FACTORS = {
     # 1/10 is wide on purpose: a one-day fall to 7-13% of the price is never an ordinary move, and on the
     # day of a 10-for-1 split the market move can be large (ITC 2005 closed at 0.073 of the previous day).
-    1 / 2: 0.08, 1 / 3: 0.08, 1 / 4: 0.08, 1 / 5: 0.08, 1 / 10: 0.30, 2 / 3: 0.05,   # splits and bonus issues
+    # 1/5 allows a large market move on the day (BRITANNIA 2010 closed at 0.227). 1/20 is a 10-for-1 split
+    # combined with a 1:1 bonus on the same day (TITAN 2011, VEDL 2008 both closed at 0.053).
+    1 / 2: 0.08, 1 / 3: 0.08, 1 / 4: 0.08, 1 / 5: 0.20, 1 / 10: 0.30, 1 / 20: 0.25, 2 / 3: 0.05,   # splits and bonus issues
     2.0: 0.04, 3.0: 0.04, 5.0: 0.04, 10.0: 0.04,                                       # reverse splits
 }
 

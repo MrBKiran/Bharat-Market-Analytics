@@ -81,11 +81,14 @@ def cmd_adjust(args) -> int:
             job["counts"] = {"rows": s["rows"], "instruments": s["instruments"], "skipped": len(s["skipped"])}
             write_report(db, "processed:adjusted_prices", job["job_id"],
                          {"rows": s["rows"], "by_method": s["by_method"], "flags": s["flags"], "skipped": s["skipped"],
-                          "placeholder_rows_dropped": s["placeholder_rows_dropped"]})
+                          "placeholder_rows_dropped": s["placeholder_rows_dropped"],
+                          "phantom_rows_dropped": s["phantom_rows_dropped"],
+                          "pre_listing_rows_dropped": s["pre_listing_rows_dropped"]})
     print(("DRY RUN: nothing written\n" if args.dry_run else "") +
           f"{s['instruments']} instruments, {s['rows']:,} adjusted rows, skipped: {s['skipped'] or 'none'}")
     print(f"By method: {s['by_method']}\nFlags:     {s['flags']}\n"
-          f"Pre-listing placeholder rows dropped: {s['placeholder_rows_dropped']:,}")
+          f"Rows dropped as not real trading: {s['placeholder_rows_dropped']:,} leading placeholders, "
+          f"{s['phantom_rows_dropped']:,} phantom (zero volume, >30% jump), {s['pre_listing_rows_dropped']:,} before a confirmed listing date")
     if args.verbose:
         print()
         for r in s["series"]:

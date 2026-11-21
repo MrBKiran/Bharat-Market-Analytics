@@ -9,8 +9,10 @@ Which raw series feeds each instrument:
            One source per stock: mixing sources would mix adjustment bases inside one series.
   indices  nothing to adjust; Yahoo first, older dates filled from Kaggle (same basis: index level).
 
-Missing data is never invented. Placeholder rows before a stock's first real trade (flat, zero
-volume) are dropped and counted. Other suspicious rows are FLAGGED (quality_flags) and kept:
+Missing data is never invented. Rows that are not real trading are dropped and COUNTED: placeholder
+rows before a stock's first trade (flat, zero volume), phantom rows (zero volume with a >30% price
+jump), and rows before a confirmed listing date (LISTING_DATES). Other suspicious rows are FLAGGED
+(quality_flags) and kept:
   return_outlier  one-day move above 30% (stocks) / 15% (indices): a crash, a demerger or bad data
   gap_before      more than 7 calendar days since the previous row
   no_trade        open = high = low = close and zero volume (stocks only)
@@ -124,6 +126,34 @@ def trim_placeholder_rows(df: pd.DataFrame, kind: str) -> tuple[pd.DataFrame, in
     return df.iloc[first_real:].reset_index(drop=True), first_real
 
 
+def drop_phantom_rows(df: pd.DataFrame, kind: str) -> tuple[pd.DataFrame, int]:
+    """Drop stock rows with ZERO volume whose price jumped more than 30% from the previous row.
+
+    These are phantom rows: a provider invented a bar for a day with no trading (RELIANCE and TCS on
+    2005-07-28 at Yahoo: volume 0, price 4x and 2x their neighbours, on a day NSE has no row at all).
+    A real move comes with volume; without it the price is not a trade. Real big moves are kept.
+    """
+    if kind != "stock" or df.empty:
+        return df, 0
+    move = (df["close"] / df["close"].shift(1) - 1).abs()
+    phantom = ((df["volume"].fillna(0) == 0) & (move > OUTLIER_LIMIT["stock"])).to_numpy()
+    return (df[~phantom].reset_index(drop=True), int(phantom.sum())) if phantom.any() else (df, 0)
+
+
+# Listing dates confirmed by the NSE record itself (the NSE series begins on that very day), for stocks
+# where a provider has older rows. Yahoo has TCS from 2002-08-12, two years before its IPO, with tiny
+# volumes: not exchange trading. Add a symbol here only with evidence like this.
+LISTING_DATES = {"TCS": datetime(2004, 8, 25, tzinfo=timezone.utc)}
+
+
+def drop_pre_listing_rows(df: pd.DataFrame, symbol: str) -> tuple[pd.DataFrame, int]:
+    listing = LISTING_DATES.get(symbol)
+    if listing is None or df.empty:
+        return df, 0
+    keep = df["date"] >= pd.Timestamp(listing)
+    return (df[keep].reset_index(drop=True), int((~keep).sum())) if (~keep).any() else (df, 0)
+
+
 def to_documents(df: pd.DataFrame, inst: dict, method: str, flags: list[list[str]], job_id: str,
                  processed_at: datetime) -> list[dict]:
     dates = [t.to_pydatetime() for t in df["date"]]
@@ -150,6 +180,7 @@ def build_adjusted_prices(db: Database, *, job_id: str = "adhoc", dry_run: bool 
     """Rebuild `adjusted_prices` for every active equity, ETF and index. Safe to re-run."""
     now = datetime.now(timezone.utc)
     summary: dict = {"instruments": 0, "skipped": [], "rows": 0, "placeholder_rows_dropped": 0,
+                     "phantom_rows_dropped": 0, "pre_listing_rows_dropped": 0,
                      "by_method": {}, "flags": {}, "series": []}
     flag_counts: Counter = Counter()
     method_rows: Counter = Counter()
@@ -168,7 +199,11 @@ def build_adjusted_prices(db: Database, *, job_id: str = "adhoc", dry_run: bool 
 
         df = df.sort_values("date").reset_index(drop=True)
         df, trimmed = trim_placeholder_rows(df, kind)
+        df, phantom = drop_phantom_rows(df, kind)
+        df, pre_listing = (drop_pre_listing_rows(df, inst["symbol"]) if kind == "stock" else (df, 0))
         summary["placeholder_rows_dropped"] += trimmed
+        summary["phantom_rows_dropped"] += phantom
+        summary["pre_listing_rows_dropped"] += pre_listing
         if df.empty:
             summary["skipped"].append(inst["symbol"])
             continue
@@ -186,7 +221,8 @@ def build_adjusted_prices(db: Database, *, job_id: str = "adhoc", dry_run: bool 
         summary["series"].append({
             "symbol": inst["symbol"], "rows": len(docs), "method": method, "source": sorted(set(df["source"])),
             "first": df["date"].min().date().isoformat(), "last": df["date"].max().date().isoformat(),
-            "splits_applied": events_applied, "placeholder_rows_dropped": trimmed, "flags": dict(own_flags)})
+            "splits_applied": events_applied, "placeholder_rows_dropped": trimmed, "phantom_rows_dropped": phantom,
+            "pre_listing_rows_dropped": pre_listing, "flags": dict(own_flags)})
 
     summary["by_method"], summary["flags"] = dict(method_rows), dict(flag_counts)
     return summary

@@ -66,6 +66,8 @@ def test_detects_a_two_for_one_split_with_the_exact_factor():
     ([100, 66.5], 2 / 3),        # 3-for-2 bonus
     ([100, 20.4], 0.2),          # 5-for-1 split with a small market move
     ([100, 35], 1 / 3),
+    ([100, 22.7], 0.2),          # 5-for-1 on a day the market rose (BRITANNIA 2010 closed at 0.227)
+    ([100, 5.3], 0.05),          # 10-for-1 split plus a 1:1 bonus the same day (TITAN 2011 closed at 0.053)
     ([100, 7.3], 0.1),           # 10-for-1 on a day the market also fell (ITC 2005 closed at 0.073)
     ([10, 20.2], 2.0),           # reverse split (consolidation)
 ])
@@ -259,6 +261,29 @@ def test_pre_listing_placeholder_rows_are_dropped_but_midseries_no_trade_days_ar
     assert summary["placeholder_rows_dropped"] == 3 and [d["date"] for d in docs] == [D(i) for i in range(3, 7)]
     assert docs[0].get("quality_flags") is None                                    # the first real day is not flagged
     assert docs[2]["quality_flags"] == ["no_trade"]                                # day 5 stays, flagged
+
+
+def test_phantom_rows_are_dropped_but_real_big_moves_are_kept(db):
+    """RELIANCE/TCS 2005-07-28 at Yahoo: zero volume and a 4x price on a day with no trading. A +47% move WITH volume is real."""
+    put(db, "RELIANCE", "yfinance", [(0, 100, 10), (1, 101, 10), (2, 400, 0), (3, 102, 10), (4, 150, 500), (5, 151, 500)],
+        basis="split_adjusted")
+    summary = adjustment.build_adjusted_prices(db)
+    docs = {d["date"]: d for d in db["adjusted_prices"].find({"symbol": "RELIANCE"})}
+    assert D(2) not in docs and D(4) in docs and summary["phantom_rows_dropped"] == 1
+    assert docs[D(3)].get("quality_flags") is None                     # day 3 is compared with day 1, so no false outlier
+    assert docs[D(4)]["quality_flags"] == ["return_outlier"]           # the real +47% move is kept and flagged
+
+
+def test_rows_before_a_confirmed_listing_date_are_dropped(db):
+    docs = [{"symbol": "TCS", "exchange": "NSE", "interval": "1d", "date": datetime(2004, 8, day, tzinfo=UTC), "open": c * 0.995,
+             "high": c * 1.01, "low": c * 0.99, "close": c, "volume": 100, "source": "yfinance", "price_basis": "split_adjusted",
+             "retrieved_at": D(0), "is_synthetic": False} for day, c in [(23, 38.0), (24, 39.0), (25, 100.0), (26, 101.0)]]
+    db["stock_prices"].insert_many(docs)
+    put(db, "INFY", "yfinance", [(0, 100, 10), (1, 101, 10)], basis="split_adjusted")      # no listing override: untouched
+    summary = adjustment.build_adjusted_prices(db)
+    dates = [d["date"] for d in db["adjusted_prices"].find({"symbol": "TCS"}).sort("date", 1)]
+    assert dates == [datetime(2004, 8, 25, tzinfo=UTC), datetime(2004, 8, 26, tzinfo=UTC)]
+    assert summary["pre_listing_rows_dropped"] == 2 and db["adjusted_prices"].count_documents({"symbol": "INFY"}) == 2
 
 
 def test_series_that_is_all_placeholders_is_skipped(db):
