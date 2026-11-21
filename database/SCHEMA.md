@@ -106,6 +106,32 @@ interval, date`. Fields beyond the bar itself: `adj_factor`, `raw_close` (derive
 `observed_ratio` and `volume_ratio`; `instruments` carries `aliases` and `symbol_history`.
 See [docs/PROCESSING.md](../docs/PROCESSING.md).
 
+## Indicators and analytics (Phase 7)
+
+### `indicators` (time-series)
+One document per bar with the indicators that have a value (warm-up values are omitted, numbers rounded to 6 decimals):
+```json
+{
+  "ts": "2026-11-20T00:00:00Z",
+  "meta": {"symbol": "RELIANCE", "exchange": "NSE", "interval": "1d", "input": "adjusted_prices"},
+  "sma_20": 1432.1, "sma_50": 1410.7, "sma_200": 1375.2, "ema_20": 1430.5, "ema_50": 1411.9, "ema_200": 1380.4,
+  "rsi_14": 56.2, "macd": 8.1, "macd_signal": 7.4, "macd_hist": 0.7, "atr_14": 21.3,
+  "bb_upper": 1460.0, "bb_mid": 1432.1, "bb_lower": 1404.2, "bb_pct_b": 0.62, "bb_width": 3.9,
+  "stoch_k": 71.0, "stoch_d": 66.5, "vwap_20": 1429.8, "adr_14": 24.0, "adr_pct_14": 1.7,
+  "hist_vol_20": 18.4, "vol_sma_20": 5100000, "vol_sma_50": 4900000
+}
+```
+Daily series come from `adjusted_prices`; intraday series from `intraday_prices` (`meta.input`). Volume-based fields
+(`vwap_20`, `vwap_session`, `vol_sma_*`) exist only for instruments that have volume; indices have none.
+Re-computing a series deletes it by `meta` and re-inserts it (no unique index is possible on a time-series collection).
+
+### `analytics_results`
+One document per analysis: `{analysis_type, scope, interval, result, data_range, computed_at}`.
+`scope` is `{"snapshot": "latest" | "full_universe", "as_of": "YYYY-MM-DD"}` for as-of analyses (performance, top_movers,
+trend, market_breadth, sector_performance, volatility, volume_analysis, correlation, index_analysis) and
+`{"history": "all"}` for return_distribution, historical_statistics and outliers.
+Re-running replaces the document with the same `analysis_type` and `scope`. Details: [docs/ANALYTICS.md](../docs/ANALYTICS.md).
+
 ## Seed data (created by `init_db.py`)
 
 - **`market_sources` (9):** `nse_bhavcopy`, `bse_bhavcopy`, `kaggle`, `yfinance`, `broker_api`, `rbi`, `mospi`, `manual_upload`, `synthetic_benchmark`.

@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 6 complete** (5.76 million real rows imported, cleaned and adjusted; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md)
+> Status: **Phase 7 complete** (5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents and 21 analyses computed; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md)
 
 ## Requirements (Windows)
 
@@ -48,6 +48,12 @@ data sources and instruments. Safe to re-run; it never deletes data.
 
 ```powershell
 .venv\Scripts\python scripts\process_data.py all      # Phase 6: corporate actions, symbols, adjusted prices, audit
+```
+
+## Indicators and market analytics
+
+```powershell
+.venv\Scripts\python scripts\analyze_data.py all      # Phase 7: sectors, indicators, analytics, report
 ```
 
 ## Run the tests

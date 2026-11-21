@@ -12,12 +12,12 @@ def _now() -> datetime:
 
 
 @contextmanager
-def tracked_job(db: Database, step: str, params: Optional[dict] = None) -> Iterator[dict]:
+def tracked_job(db: Database, step: str, params: Optional[dict] = None, job_type: str = "clean") -> Iterator[dict]:
     """Record a processing step in `processing_jobs`. Put results in ctx["counts"]."""
     now = _now()
-    job_id = f"clean_{step}_{now:%Y%m%d_%H%M%S}_{uuid.uuid4().hex[:6]}"
+    job_id = f"{job_type}_{step}_{now:%Y%m%d_%H%M%S}_{uuid.uuid4().hex[:6]}"
     db["processing_jobs"].insert_one({
-        "job_id": job_id, "job_type": "clean", "status": "running", "progress": 0.0, "source": "processing",
+        "job_id": job_id, "job_type": job_type, "status": "running", "progress": 0.0, "source": "processing",
         "created_at": now, "started_at": now, "updated_at": now, "params": {"step": step, **(params or {})},
     })
     ctx: dict = {"job_id": job_id, "counts": {}}
