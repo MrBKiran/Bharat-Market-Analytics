@@ -136,6 +136,31 @@ Phase 8 adds six Spark analyses with `scope {"engine": "spark"}` (`spark_returns
 measurements in `benchmark_results` (`technology` = pandas, mongodb_aggregation or pyspark; `is_synthetic` false).
 See [docs/BIGDATA.md](../docs/BIGDATA.md).
 
+## Backtesting (Phase 9)
+
+### `backtest_results`
+One document per run (key `run_id`), written by `scripts/backtest.py`:
+```json
+{
+  "run_id": "bt_20261121_213058_eaaecd", "strategy": "ema_crossover", "symbol": "RELIANCE", "exchange": "NSE", "interval": "1d",
+  "start": "2000-01-03T00:00:00Z", "end": "2026-11-20T00:00:00Z", "params": {"fast": 20, "slow": 50, "atr_stop_mult": 2.0, "target_r": null},
+  "costs": {"model": {"name": "delivery", "stt_buy_pct": 0.1, "...": "..."}, "slippage_bps": 5.0, "position_pct": 100.0, "initial_capital": 1000000.0},
+  "metrics": {"total_trades": 87, "winners": 22, "losers": 65, "win_rate_pct": 25.29, "net_pnl": 7374750.99, "profit_factor": 1.4, "max_drawdown_pct": -79.2, "avg_risk_reward": 8.03, "...": "..."},
+  "benchmark": {"total_return_pct": 18636.04, "...": "buy and hold, same dates, same costs"},
+  "periods": {"split_date": "2018-09-28T00:00:00Z", "in_sample": {"...": "..."}, "out_of_sample": {"...": "..."}},
+  "equity_curve": [{"ts": "...", "equity": 1000000.0, "drawdown_pct": 0.0, "benchmark_equity": 1000000.0}],
+  "trades": [{"entry_ts": "...", "exit_ts": "...", "entry_price": 7.3, "exit_price": 6.96, "qty": 136690, "net_pnl": -49767.67, "r_multiple": -1.07, "exit_reason": "signal"}],
+  "warnings": ["survivorship bias: ..."], "tax_estimate": {"total_tax": 0.0, "...": "..."}, "batch": "compare", "created_at": "..."
+}
+```
+(numbers above are illustrative). Required by the validator: `run_id, strategy, symbol, exchange, interval, params, metrics, created_at`.
+Profit factor is `null` when there is no losing trade. `trades` is capped at 1,500 (`trades_truncated`), `equity_curve` at 800 points.
+
+### `trading_signals`
+One document per signal of a run: `{run_id, symbol, exchange, interval, ts, strategy, signal ("buy" | "exit_long"), price, params, stop, action, fill_price, created_at}`.
+`action` is `executed`, `skipped_gap_through_stop`, `skipped_no_stop`, `skipped_too_small`, `skipped_end_of_day` or `ignored_already_in_position`.
+Metrics, cost assumptions and the bias controls are explained in [docs/BACKTESTING.md](../docs/BACKTESTING.md).
+
 ## Seed data (created by `init_db.py`)
 
 - **`market_sources` (9):** `nse_bhavcopy`, `bse_bhavcopy`, `kaggle`, `yfinance`, `broker_api`, `rbi`, `mospi`, `manual_upload`, `synthetic_benchmark`.

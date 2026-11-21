@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 8 complete** (5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md)
+> Status: **Phase 9 complete** (5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md)
 
 ## Requirements (Windows)
 
@@ -64,6 +64,17 @@ data sources and instruments. Safe to re-run; it never deletes data.
 .venv\Scripts\python scripts\bigdata.py analytics    # Spark analyses -> analytics_results
 .venv\Scripts\python scripts\bigdata.py benchmark    # pandas vs MongoDB vs Spark
 ```
+
+## Backtest trading strategies
+
+```powershell
+.venv\Scripts\python scripts\backtest.py list                                       # 7 strategies and their parameters
+.venv\Scripts\python scripts\backtest.py run RELIANCE ema_crossover --start 2010-01-01
+.venv\Scripts\python scripts\backtest.py compare                                    # all strategies x all stocks -> backtest_results
+.venv\Scripts\python scripts\backtest.py sweep TCS ema_crossover --grid fast=10,20,30 --grid slow=50,100,200
+```
+Signals act at the next bar's open, costs and slippage are charged, every result is shown next to buy-and-hold, and the
+look-ahead guarantees are tested. Read [docs/BACKTESTING.md](docs/BACKTESTING.md) before quoting a number: the stock list has survivorship bias.
 
 ## Run the tests
 
