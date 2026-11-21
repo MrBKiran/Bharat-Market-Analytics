@@ -215,6 +215,8 @@ INSTRUMENTS = CollectionSpec(
             "strike": POSITIVE,
             "option_type": enum("CE", "PE"),
             "lot_size": {"bsonType": ["int", "long"], "minimum": 1},
+            "aliases": ARR,            # other spellings that resolve to this symbol (e.g. "MM" for M&M)
+            "symbol_history": ARR,     # [{symbol, first_date, last_date}] earlier NSE symbols
             "created_at": DATE,
         },
     ),
@@ -238,6 +240,10 @@ CORPORATE_ACTIONS = CollectionSpec(
             "ex_date": DATE,
             "factor": POSITIVE,        # price adjustment factor, e.g. 0.5 for a 1:2 split
             "amount": NON_NEG,         # cash dividend per share (INR)
+            "confidence": enum("provider", "inferred"),   # provider = listed by Yahoo; inferred = from a price jump
+            "confirmed_by": ARR,       # other sources that agree, e.g. ["derived_nse_prices"]
+            "observed_ratio": POSITIVE,   # inferred events: the close-to-close ratio actually seen
+            "volume_ratio": NON_NEG,      # inferred events: volume vs the previous day
             "details": STR,
             "source": STR,
             "retrieved_at": DATE,
@@ -487,6 +493,39 @@ BENCHMARK_RESULTS = CollectionSpec(
     ),
 )
 
+# ---- Processed (derived) data, kept apart from the raw collections ----------
+ADJUSTED_PRICES = CollectionSpec(
+    name="adjusted_prices",
+    description="PROCESSED daily bars: one consistent series per symbol, adjusted for splits where needed. "
+                "Rebuilt from the raw collections at any time (scripts/process_data.py adjust); never edited by hand.",
+    validator=with_ohlc(schema(
+        ["symbol", "exchange", "interval", "date", "open", "high", "low", "close", "adj_factor",
+         "source", "method", "processed_at"],
+        {
+            "symbol": SYMBOL,
+            "exchange": enum(*EXCHANGES),
+            "interval": enum("1d"),
+            "date": DATE,
+            "open": POSITIVE, "high": POSITIVE, "low": POSITIVE, "close": POSITIVE,
+            "volume": NON_NEG,
+            "raw_close": POSITIVE,          # the close as traded (only for derived adjustments)
+            "adj_factor": POSITIVE,         # multiplier applied to the raw prices (1.0 = none)
+            "source": STR,                  # raw source this row came from
+            # provider_adjusted: the provider already adjusted it; derived_adjustment: we applied the
+            # corporate_actions factors to raw prices; index_level: an index (nothing to adjust)
+            "method": enum("provider_adjusted", "derived_adjustment", "index_level"),
+            "quality_flags": ARR,           # return_outlier, no_trade, gap_before
+            "job_id": STR,
+            "processed_at": DATE,
+        },
+    )),
+    indexes=(
+        IndexSpec("uq_symbol_exchange_interval_date",
+                  (("symbol", ASC), ("exchange", ASC), ("interval", ASC), ("date", ASC)), unique=True),
+        IndexSpec("idx_date", (("date", DESC),)),
+    ),
+)
+
 # Indexes from earlier versions of the schema that setup_database() must drop
 # (their replacement has a different key, so MongoDB cannot update them in place).
 OBSOLETE_INDEXES = (
@@ -504,5 +543,5 @@ REQUIRED_COLLECTIONS = (
 COLLECTIONS: tuple[CollectionSpec, ...] = (
     STOCK_PRICES, INTRADAY_PRICES, MARKET_INDICES, INSTRUMENTS, CORPORATE_ACTIONS, MARKET_SOURCES,
     INDICATORS, TRADING_SIGNALS, BACKTEST_RESULTS, PROCESSING_JOBS, ANALYTICS_RESULTS, ECONOMIC_DATA,
-    IMPORT_FILES, INTRADAY_COVERAGE, DATA_QUALITY_REPORTS, BENCHMARK_RESULTS,
+    IMPORT_FILES, INTRADAY_COVERAGE, DATA_QUALITY_REPORTS, BENCHMARK_RESULTS, ADJUSTED_PRICES,
 )

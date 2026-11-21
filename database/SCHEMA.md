@@ -57,6 +57,7 @@ Daily bars stay in a regular collection because they need exact de-duplication a
 | `intraday_coverage` | First/last timestamp and row count already loaded per `exchange, symbol, interval, source`. | `exchange, symbol, interval, source` |
 | `data_quality_reports` | Cleaning results per dataset (valid / rejected / duplicate / repaired). | none |
 | `benchmark_results` | Performance test results per technology, operation and record count. | none |
+| `adjusted_prices` | PROCESSED daily bars: one split-adjusted series per instrument, rebuilt from the raw collections. | `symbol, exchange, interval, date` |
 
 ## Key document shapes
 
@@ -94,6 +95,16 @@ Rule enforced by the database: `high >= low, open, close` and `low <= open, clos
 }
 ```
 `checkpoint` lets an interrupted import resume where it stopped.
+
+## Processed data (Phase 6)
+
+`adjusted_prices` is the one **processed** collection: one consistent, split-adjusted daily series per instrument,
+rebuilt from the raw collections by `scripts/process_data.py adjust` (never edited by hand). Key: `symbol, exchange,
+interval, date`. Fields beyond the bar itself: `adj_factor`, `raw_close` (derived series only), `source`, `method`
+(`provider_adjusted`, `derived_adjustment`, `index_level`), `quality_flags` (`return_outlier`, `gap_before`,
+`no_trade`) and `job_id`. `corporate_actions` also carries `confidence` (`provider` or `inferred`), `confirmed_by`,
+`observed_ratio` and `volume_ratio`; `instruments` carries `aliases` and `symbol_history`.
+See [docs/PROCESSING.md](../docs/PROCESSING.md).
 
 ## Seed data (created by `init_db.py`)
 

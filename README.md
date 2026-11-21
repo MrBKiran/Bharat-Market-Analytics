@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 5 complete** (5.76 million real rows imported; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md)
+> Status: **Phase 6 complete** (5.76 million real rows imported, cleaned and adjusted; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md)
 
 ## Requirements (Windows)
 
@@ -42,6 +42,12 @@ data sources and instruments. Safe to re-run; it never deletes data.
 .venv\Scripts\python scripts\download_data.py yfinance --interval 1d     # Phase 4 (Kaggle: see docs/DATA_SOURCES.md)
 .venv\Scripts\python scripts\import_data.py import data\raw\yfinance data\raw\kaggle --auto-register   # Phase 5
 .venv\Scripts\python scripts\import_data.py summary
+```
+
+## Clean and process the data
+
+```powershell
+.venv\Scripts\python scripts\process_data.py all      # Phase 6: corporate actions, symbols, adjusted prices, audit
 ```
 
 ## Run the tests
