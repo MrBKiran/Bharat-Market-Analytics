@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 11 complete** (React dashboard with 7 pages; 34 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md)
+> Status: **Phase 12 complete** (dashboard and API served together at one address; React dashboard with 7 pages; 34 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md) | [docs/RUNNING.md](docs/RUNNING.md)
 
 ## Requirements (Windows)
 
@@ -29,13 +29,21 @@ copy .env.example .env
 - 34 endpoints: market data, instruments, indicators, analytics, comparison, import, processing, backtesting. Endpoints that change
   data need the `X-API-Key` header when `API_KEY` is set in `.env`; all endpoints are rate limited. See [docs/API.md](docs/API.md).
 
-## Run the dashboard
+## Run the whole app (one address)
+
+```powershell
+.venv\Scripts\python scripts\serve.py --build    # builds the dashboard (needs Node.js), then serves it AND the API
+# open http://127.0.0.1:8000        (API docs: /docs)        later: scripts\serve.py
+```
+See [docs/RUNNING.md](docs/RUNNING.md) for the first-time order, the development modes and how to expose it safely.
+
+## Develop the dashboard
 
 ```powershell
 cd frontend
 npm install          # first time only
-npm run dev          # http://localhost:5173 (needs the API above running)
-npm test             # 68 frontend tests
+npm run dev          # http://localhost:5173 with hot reload (needs the API running)
+npm test             # 93 frontend tests (incl. the shared API contract)
 ```
 Overview, interactive stock charts, comparison, sectors, search, strategy backtesting and data import with live progress; light and
 dark themes; works on phones. See [docs/DASHBOARD.md](docs/DASHBOARD.md).

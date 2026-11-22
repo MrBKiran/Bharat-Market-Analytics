@@ -1,0 +1,51 @@
+{
+  "_about": "The fields the dashboard reads from each API response. The backend test (tests/test_contract.py) checks the REAL API against this file; the frontend test (contract.test.ts) checks the test fixtures against it. If either side drifts, a test fails. Path syntax: a.b = key; list[] = every element of a list; * = every value of an object; :type = number|string|boolean|object|array (null is always allowed for a present key).",
+  "health": ["status:string", "database.connected:boolean"],
+  "instruments_list": ["items[].symbol:string", "items[].exchange:string", "items[].name:string", "items[].instrument_type:string", "items[].active:boolean", "page:number", "page_size:number", "total:number", "pages:number"],
+  "instrument_detail": ["symbol:string", "exchange:string", "name:string", "instrument_type:string", "active:boolean", "coverage.daily.bars:number", "coverage.daily.first:string", "coverage.daily.last:string", "coverage.intraday:array"],
+  "prices": ["symbol:string", "interval:string", "items[].ts:string", "items[].open:number", "items[].high:number", "items[].low:number", "items[].close:number", "next_cursor"],
+  "latest": ["symbol:string", "as_of:string", "close:number", "previous_close:number", "change:number", "change_pct:number", "bar.ts:string"],
+  "indicators": ["items[].ts:string", "items[].rsi_14:number", "next_cursor"],
+  "search": ["items[].symbol:string", "items[].ts:string", "items[].close:number", "total:number", "page:number", "pages:number"],
+  "sectors": ["sectors[].sector:string", "sectors[].count:number", "sectors[].symbols:array", "unassigned:array"],
+  "overview": [
+    "snapshot:string", "as_of:string", "computed_at:string",
+    "universe.stocks:number", "universe.indices:number", "universe.stale_excluded:array",
+    "trend.bullish:number", "trend.neutral:number", "trend.bearish:number",
+    "breadth.advancers:number", "breadth.decliners:number", "breadth.unchanged:number", "breadth.advance_decline_ratio", "breadth.pct_above_sma50", "breadth.pct_above_sma200", "breadth.new_52w_highs:number", "breadth.new_52w_lows:number",
+    "top_movers.1d.gainers[].symbol:string", "top_movers.1d.gainers[].name:string", "top_movers.1d.gainers[].return_pct:number", "top_movers.1d.losers[].symbol:string",
+    "top_movers.1w.gainers:array", "top_movers.1w.losers:array", "top_movers.1m.gainers[].return_pct:number", "top_movers.1m.losers:array",
+    "sectors.sectors.*.stocks:number", "sectors.sectors.*.members:array", "sectors.sectors.*.1d", "sectors.sectors.*.1m", "sectors.sectors.*.ytd", "sectors.ranking_by_1m:array",
+    "indices.indices.*.name:string", "indices.indices.*.close:number", "indices.indices.*.last_date:string", "indices.indices.*.performance_pct.1d", "indices.indices.*.performance_pct.1m", "indices.indices.*.performance_pct.1y",
+    "indices.indices.*.max_drawdown_pct:number", "indices.indices.*.current_drawdown_pct:number", "indices.indices.*.annualised_vol_pct_last_1y:number"
+  ],
+  "compare": [
+    "symbols:array", "period.start:string", "period.end:string", "period.bars:number", "period.years:number",
+    "stats.*.total_return_pct:number", "stats.*.cagr_pct", "stats.*.volatility_pct:number", "stats.*.max_drawdown_pct:number", "stats.*.best_day_pct:number", "stats.*.worst_day_pct:number",
+    "correlation.*.*", "rebased_series[].ts:string", "note:string"
+  ],
+  "stats": ["database:string", "collections.instruments:number", "collections.adjusted_prices:number", "collections.intraday_prices:number", "collections.indicators:number", "collections.backtest_results:number", "size_mb.storage:number", "daily_prices.first:string", "daily_prices.last:string"],
+  "strategies": ["strategies[].name:string", "strategies[].title:string", "strategies[].description:string", "strategies[].defaults:object", "strategies[].needs_volume:boolean", "cost_presets:object"],
+  "backtest_run": [
+    "run_id:string", "strategy:string", "symbol:string", "exchange:string", "interval:string", "start:string", "end:string", "params:object",
+    "costs.model.name:string", "costs.slippage_bps:number", "costs.initial_capital:number",
+    "metrics.initial_capital:number", "metrics.net_pnl:number", "metrics.total_return_pct:number", "metrics.cagr_pct", "metrics.max_drawdown_pct:number", "metrics.win_rate_pct", "metrics.winners:number", "metrics.losers:number", "metrics.profit_factor",
+    "metrics.total_trades:number", "metrics.avg_risk_reward", "metrics.avg_r", "metrics.sharpe", "metrics.exposure_pct:number", "metrics.total_costs",
+    "benchmark.total_return_pct:number", "benchmark.max_drawdown_pct:number", "benchmark.sharpe", "excess_return_pct:number",
+    "periods.split_date:string", "periods.in_sample.total_trades:number", "periods.in_sample.total_return_pct", "periods.in_sample.win_rate_pct", "periods.in_sample.profit_factor", "periods.in_sample.buy_hold_return_pct",
+    "periods.out_of_sample.total_trades:number", "periods.out_of_sample.total_return_pct", "periods.out_of_sample.win_rate_pct", "periods.out_of_sample.profit_factor", "periods.out_of_sample.buy_hold_return_pct",
+    "warnings:array", "equity_curve[].ts:string", "equity_curve[].equity:number", "equity_curve[].drawdown_pct:number", "equity_curve[].benchmark_equity:number",
+    "trades[].entry_ts:string", "trades[].exit_ts:string", "trades[].entry_price:number", "trades[].exit_price:number", "trades[].qty:number", "trades[].net_pnl:number", "trades[].return_pct:number", "trades[].holding_days:number", "trades[].r_multiple", "trades[].exit_reason:string",
+    "trades_total:number", "stored:boolean"
+  ],
+  "backtests_list": ["items[].run_id:string", "items[].strategy:string", "items[].symbol:string", "items[].interval:string", "items[].created_at:string", "items[].metrics.total_trades:number", "items[].metrics.total_return_pct", "items[].benchmark.total_return_pct", "total:number", "page:number", "pages:number"],
+  "leaderboard": [
+    "batch:string", "runs:number", "warning:string", "strategies[].strategy:string", "strategies[].stocks:number", "strategies[].beat_buy_and_hold:number", "strategies[].median_total_trades", "strategies[].median_win_rate_pct", "strategies[].median_profit_factor",
+    "strategies[].median_total_return_pct", "strategies[].median_max_drawdown_pct", "strategies[].median_sharpe", "strategies[].median_buy_hold_return_pct", "strategies[].median_buy_hold_sharpe", "strategies[].median_oos_return_pct"
+  ],
+  "jobs": ["items[].job_id:string", "items[].job_type:string", "items[].status:string", "items[].progress:number", "items[].created_at:string", "total:number", "page:number", "pages:number"],
+  "benchmarks": ["items[].run_id:string", "items[].technology:string", "items[].operation:string", "items[].record_count:number", "items[].duration_seconds:number", "items[].is_synthetic:boolean"],
+  "upload_result": ["status:string", "file:string", "counts.read:number", "counts.inserted:number", "counts.duplicates:number", "counts.rejected:number", "duration_seconds:number"],
+  "processing_start": ["job_id:string", "status:string", "step:string"],
+  "error": ["error.code:string", "error.message:string", "error.request_id"]
+}

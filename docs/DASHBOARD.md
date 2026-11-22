@@ -22,7 +22,7 @@ Open http://localhost:5173. In development Vite forwards every `/api` request to
 | Command (in `frontend/`) | Does |
 |---|---|
 | `npm run dev` | development server with hot reload |
-| `npm test` | 68 tests (Vitest, Testing Library) |
+| `npm test` | 93 tests (Vitest, Testing Library), including the shared API contract |
 | `npm run typecheck` | TypeScript strict check |
 | `npm run build` | type-check and production build into `frontend/dist` (about 174 KB gzipped) |
 
@@ -73,8 +73,8 @@ Open http://localhost:5173. In development Vite forwards every `/api` request to
 - **Data limits are the database's limits:** 39 stocks end in April 2021 (the free Kaggle data), so the Overview leaves them out of
   "today's" numbers (it says so) and the Stock page shows a notice; intraday bars exist only for the Nifty indices; BSE contains only
   Sensex and BSE 500; chart prices are split-adjusted, not dividend-adjusted.
-- The production build is static files in `frontend/dist`. Serving them next to the API (one address, no Vite) is set up in Phases 12
-  and 15.
+- The production build is static files in `frontend/dist`. The API serves them itself (`scripts\serve.py`: one address, no Vite, strict
+  content-security policy; see [RUNNING.md](RUNNING.md)). Docker packaging comes in Phase 15.
 
 ## Layout
 
@@ -85,7 +85,7 @@ Open http://localhost:5173. In development Vite forwards every `/api` request to
 | `frontend/src/state`, `theme.tsx` | shared controls (symbol, exchange, timeframe, range) and the theme |
 | `frontend/src/components` | layout, selectors, charts (`PriceChart`, `LineChart`), `ui.tsx` building blocks, heat-map and bars |
 | `frontend/src/pages` | the seven pages |
-| `frontend/src/test` | 68 tests: formatting, dates, API client and paging, components, and every page against a mocked API |
+| `frontend/src/test` | 93 tests: formatting, dates, API client and paging, components, every page against a mocked API, and `contract.json` shared with the backend tests |
 
 ## Troubleshooting
 

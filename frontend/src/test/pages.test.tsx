@@ -1,7 +1,8 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BACKTEST_DOC, BARS_DESC, HEALTH, OVERVIEW, RELIANCE_DETAIL, STATS, STRATEGIES, jsonError, mockApi, renderApp } from "./utils";
+import { uploadSummary } from "../pages/Data";
+import { BACKTEST_DOC, BENCHMARKS, COMPARE, HEALTH, INDICATORS, JOBS, LATEST, OVERVIEW, PRICES, RELIANCE_DETAIL, SECTORS, STATS, STRATEGIES, UPLOAD_RESULT, jsonError, mockApi, renderApp } from "./utils";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -86,9 +87,9 @@ describe("Stock page", () => {
     mockApi({
       ...base,
       "/api/instruments/RELIANCE": () => RELIANCE_DETAIL,
-      "/api/prices/RELIANCE": () => ({ symbol: "RELIANCE", interval: "1d", items: BARS_DESC, next_cursor: null }),
-      "/api/prices/RELIANCE/latest": () => ({ symbol: "RELIANCE", as_of: "2026-11-20T00:00:00Z", close: 1377.5, previous_close: 1375.6, change: 1.9, change_pct: 0.138, bar: BARS_DESC[0] }),
-      "/api/indicators/RELIANCE": () => ({ items: [], next_cursor: null }),
+      "/api/prices/RELIANCE": () => PRICES,
+      "/api/prices/RELIANCE/latest": () => LATEST,
+      "/api/indicators/RELIANCE": () => INDICATORS,
       "/api/instruments": () => ({ items: [], page: 1, page_size: 12, total: 0, pages: 0 }),
       ...extra,
     });
@@ -233,9 +234,8 @@ describe("Data page", () => {
   const dataApi = (extra: Record<string, () => unknown> = {}) =>
     mockApi({
       ...base,
-      "/api/jobs": () => ({ items: [{ job_id: "analytics_analytics_1", job_type: "analytics", status: "running", progress: 40, created_at: "2026-11-22T10:00:00Z", params: { step: "analytics" } },
-                                    { job_id: "clean_adjust_1", job_type: "clean", status: "failed", progress: 5, created_at: "2026-11-22T09:00:00Z", error: "disk full", params: { step: "adjust" } }], page: 1, page_size: 15, total: 2, pages: 1 }),
-      "/api/benchmarks": () => ({ items: [], page: 1, page_size: 60, total: 0, pages: 0 }),
+      "/api/jobs": () => JOBS,
+      "/api/benchmarks": () => BENCHMARKS,
       ...extra,
     });
 
@@ -267,6 +267,18 @@ describe("Data page", () => {
     expect(screen.getByRole("button", { name: /check file|import file/i })).toBeDisabled();
   });
 
+  it("describes a dry run as what WOULD happen, never as stored", () => {
+    const dry = uploadSummary({ ...UPLOAD_RESULT, status: "dry_run", counts: { read: 6, inserted: 6, duplicates: 0, rejected: 0 } });
+    expect(dry.title).toBe("Dry run finished: nothing was stored");
+    expect(dry.detail).toContain("6 would be stored");
+    expect(dry.detail).not.toMatch(/\b(6|\d+) stored\b/);
+    const real = uploadSummary({ ...UPLOAD_RESULT, status: "completed", counts: { read: 1234567, inserted: 1200000, duplicates: 34000, rejected: 567 } });
+    expect(real.title).toBe("Import finished");
+    expect(real.detail).toContain("12,34,567 rows read");                         // Indian digit grouping
+    expect(real.detail).toContain("12,00,000 stored");
+    expect(uploadSummary({ ...UPLOAD_RESULT, status: "already_imported", counts: undefined }).title).toBe("This exact file was imported before");
+  });
+
   it("enables the import only once a valid file is chosen", async () => {
     dataApi();
     renderApp("/data");
@@ -285,12 +297,7 @@ describe("Compare, Sectors and Search pages", () => {
       "/api/instruments/TCS": () => ({ ...RELIANCE_DETAIL, symbol: "TCS", name: "Tata Consultancy Services Ltd" }),
       "/api/instruments/NIFTY_50": () => ({ ...RELIANCE_DETAIL, symbol: "NIFTY_50", name: "NIFTY 50" }),
       "/api/instruments": () => ({ items: [], page: 1, page_size: 12, total: 0, pages: 0 }),
-      "/api/compare": () => ({
-        symbols: ["RELIANCE", "TCS", "NIFTY_50"], period: { start: "2023-11-20T00:00:00Z", end: "2026-11-20T00:00:00Z", bars: 741, years: 3 },
-        stats: Object.fromEntries(["RELIANCE", "TCS", "NIFTY_50"].map((s, i) => [s, { first_close: 100, last_close: 120, total_return_pct: 20 - i * 10, cagr_pct: 6, volatility_pct: 18.5, max_drawdown_pct: -22, best_day_pct: 5, worst_day_pct: -4 }])),
-        correlation: { RELIANCE: { RELIANCE: 1, TCS: 0.31, NIFTY_50: 0.74 }, TCS: { RELIANCE: 0.31, TCS: 1, NIFTY_50: 0.62 }, NIFTY_50: { RELIANCE: 0.74, TCS: 0.62, NIFTY_50: 1 } },
-        rebased_series: [{ ts: "2023-11-20T00:00:00Z", RELIANCE: 100, TCS: 100, NIFTY_50: 100 }], note: "only dates on which every symbol has a close are used",
-      }),
+      "/api/compare": () => COMPARE,
     });
     renderApp("/compare");
     expect(await screen.findByText(/741 trading days in common, 20 Nov 2023 to 20 Nov 2026/)).toBeInTheDocument();
@@ -309,7 +316,7 @@ describe("Compare, Sectors and Search pages", () => {
   });
 
   it("shows sector rankings and tells the reader the labels are the project's own", async () => {
-    mockApi({ ...base, "/api/market/overview": () => OVERVIEW, "/api/sectors": () => ({ sectors: [{ sector: "Financial Services", count: 1, symbols: ["SBIN"] }], unassigned: [] }) });
+    mockApi({ ...base, "/api/market/overview": () => OVERVIEW, "/api/sectors": () => SECTORS });
     renderApp("/sectors");
     expect(await screen.findByText("Read the sector numbers with care")).toBeInTheDocument();
     expect(screen.getByText(/equal-weighted averages of the stocks listed\. Sector labels/)).toBeInTheDocument();

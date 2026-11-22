@@ -22,6 +22,23 @@ const countsText = (c: Job["counts"]) => (c ? Object.entries(c).filter(([, v]) =
 // ------------------------------------------------------------------------------------------------- upload
 type Phase = "idle" | "uploading" | "importing" | "done" | "error";
 
+/** What to tell the user after an upload. A dry run reports what WOULD happen, so it must never say "stored". */
+export function uploadSummary(r: UploadResult): { title: string; detail: string } {
+  const c = r.counts;
+  if (r.status === "already_imported") return { title: "This exact file was imported before", detail: "Nothing was changed." };
+  const took = r.duration_seconds !== undefined ? ` · ${r.duration_seconds}s` : "";
+  if (r.status === "dry_run") {
+    return {
+      title: "Dry run finished: nothing was stored",
+      detail: c ? `${formatNumber(c.read)} rows read · ${formatNumber(c.inserted)} would be stored · ${formatNumber(c.duplicates)} duplicates would be skipped · ${formatNumber(c.rejected)} would be rejected${took}` : "The file looks importable.",
+    };
+  }
+  return {
+    title: "Import finished",
+    detail: c ? `${formatNumber(c.read)} rows read · ${formatNumber(c.inserted)} stored · ${formatNumber(c.duplicates)} duplicates skipped · ${formatNumber(c.rejected)} rejected${took}` : `Status: ${r.status}`,
+  };
+}
+
 function UploadCard() {
   const invalidate = useInvalidateAfterImport();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -129,11 +146,7 @@ function UploadCard() {
       {phase === "error" && <div style={{ marginTop: "1rem" }}><ErrorBox error={error} title="The file was not imported" /></div>}
       {phase === "done" && result && (
         <div style={{ marginTop: "1rem" }}>
-          <Banner kind="info" title={result.status === "already_imported" ? "This exact file was imported before" : result.status === "dry_run" ? "Dry run finished: nothing was stored" : "Import finished"}>
-            {result.counts ? (
-              <span>Read {formatNumber(result.counts.read)} rows · {formatNumber(result.counts.inserted)} stored · {formatNumber(result.counts.duplicates)} duplicates skipped · {formatNumber(result.counts.rejected)} rejected{result.duration_seconds !== undefined ? ` · ${result.duration_seconds}s` : ""}</span>
-            ) : <span>Status: {result.status}</span>}
-          </Banner>
+          <Banner kind="info" title={uploadSummary(result).title}>{uploadSummary(result).detail}</Banner>
         </div>
       )}
     </Card>

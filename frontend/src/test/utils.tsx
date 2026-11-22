@@ -107,5 +107,43 @@ export const BACKTEST_DOC = {
   periods: { split_date: "2026-04-01T00:00:00Z", in_sample: { total_trades: 3, total_return_pct: 9, win_rate_pct: 50, profit_factor: 2, buy_hold_return_pct: 11 }, out_of_sample: { total_trades: 2, total_return_pct: 3, win_rate_pct: 0, profit_factor: 0.5, buy_hold_return_pct: 8 } },
   warnings: ["survivorship bias: the stock list is today's index members"],
   equity_curve: [{ ts: "2025-11-20T00:00:00Z", equity: 1_000_000, drawdown_pct: 0, benchmark_equity: 1_000_000 }, { ts: "2026-11-20T00:00:00Z", equity: 1_123_456, drawdown_pct: -1, benchmark_equity: 1_201_000 }],
-  trades: [], trades_total: 5, stored: false,
+  trades: [{ entry_ts: "2026-01-05T00:00:00Z", exit_ts: "2026-02-10T00:00:00Z", entry_price: 1300, exit_price: 1390, qty: 700, net_pnl: 61000, return_pct: 6.7, holding_days: 36, r_multiple: 1.8, exit_reason: "signal" }],
+  trades_total: 5, stored: false,
 };
+
+// The other responses the dashboard reads. Each is checked against contract.json (contract.test.ts), so they cannot drift from
+// what the real API returns (tests/test_contract.py checks the same file against the real API).
+export const INSTRUMENTS_LIST = {
+  items: [{ symbol: "TCS", exchange: "NSE", name: "Tata Consultancy Services Ltd", instrument_type: "equity", sector: "Information Technology", active: true }],
+  page: 1, page_size: 25, total: 56, pages: 3,
+};
+export const PRICES = { symbol: "RELIANCE", interval: "1d", basis: "adjusted", order: "desc", count: 3, items: BARS_DESC, next_cursor: null };
+export const LATEST = { symbol: "RELIANCE", as_of: "2026-11-20T00:00:00Z", close: 1377.5, previous_close: 1375.6, change: 1.9, change_pct: 0.138, bar: BARS_DESC[0] };
+export const INDICATORS = { items: [{ ts: "2026-11-20T00:00:00Z", rsi_14: 55.2, ema_20: 1360.1 }], next_cursor: null };
+export const SEARCH = { items: [{ symbol: "TCS", exchange: "NSE", ts: "2026-11-20T00:00:00Z", open: 2325, high: 2414.8, low: 2317, close: 2376.2, volume: 2960416 }], total: 1, page: 1, page_size: 25, pages: 1 };
+export const SECTORS = { sectors: [{ sector: "Financial Services", count: 1, symbols: ["SBIN"] }], unassigned: [] };
+export const COMPARE = {
+  symbols: ["RELIANCE", "TCS", "NIFTY_50"], period: { start: "2023-11-20T00:00:00Z", end: "2026-11-20T00:00:00Z", bars: 741, years: 3 },
+  stats: Object.fromEntries(["RELIANCE", "TCS", "NIFTY_50"].map((s, i) => [s, { first_close: 100, last_close: 120, total_return_pct: 20 - i * 10, cagr_pct: 6, volatility_pct: 18.5, max_drawdown_pct: -22, best_day_pct: 5, worst_day_pct: -4 }])),
+  correlation: { RELIANCE: { RELIANCE: 1, TCS: 0.31, NIFTY_50: 0.74 }, TCS: { RELIANCE: 0.31, TCS: 1, NIFTY_50: 0.62 }, NIFTY_50: { RELIANCE: 0.74, TCS: 0.62, NIFTY_50: 1 } },
+  rebased_series: [{ ts: "2023-11-20T00:00:00Z", RELIANCE: 100, TCS: 100, NIFTY_50: 100 }], note: "only dates on which every symbol has a close are used",
+};
+export const BACKTESTS_LIST = {
+  items: [{ run_id: "bt_1", strategy: "ema_crossover", symbol: "RELIANCE", interval: "1d", start: "2025-11-20T00:00:00Z", end: "2026-11-20T00:00:00Z", created_at: "2026-11-22T10:00:00Z",
+    metrics: { total_trades: 5, total_return_pct: 12.35 }, benchmark: { total_return_pct: 20.1 } }],
+  total: 1, page: 1, page_size: 8, pages: 1,
+};
+export const LEADERBOARD = {
+  batch: "compare", runs: 98, warning: "survivorship bias: the stock list is today's index members",
+  strategies: [{ strategy: "ema_crossover", stocks: 49, beat_buy_and_hold: 9, median_total_trades: 45, median_win_rate_pct: 32, median_profit_factor: 1.62, median_total_return_pct: 309, median_max_drawdown_pct: -54.8,
+    median_sharpe: 0.38, median_buy_hold_return_pct: 1497, median_buy_hold_sharpe: 0.6, median_oos_return_pct: 37.2 }],
+};
+export const JOBS = {
+  items: [{ job_id: "analytics_analytics_1", job_type: "analytics", status: "running", progress: 40, created_at: "2026-11-22T10:00:00Z", params: { step: "analytics" } },
+          { job_id: "clean_adjust_1", job_type: "clean", status: "failed", progress: 5, created_at: "2026-11-22T09:00:00Z", error: "disk full", params: { step: "adjust" } }],
+  page: 1, page_size: 15, total: 2, pages: 1,
+};
+export const BENCHMARKS = { items: [{ run_id: "r1", technology: "pandas", operation: "resample", record_count: 1000, duration_seconds: 0.5, records_per_second: 2000, is_synthetic: false }], page: 1, page_size: 60, total: 1, pages: 1 };
+export const UPLOAD_RESULT = { status: "dry_run", file: "TCS_NSE.csv", counts: { read: 6, inserted: 0, duplicates: 0, rejected: 0 }, duration_seconds: 0.1 };
+export const PROCESSING_START = { job_id: "analytics_analytics_2", status: "queued", step: "analytics", status_url: "/api/jobs/analytics_analytics_2" };
+export const ERROR_BODY = { error: { code: "not_found", message: "No instrument called NOPE on NSE.", details: null, request_id: "abc12345" } };

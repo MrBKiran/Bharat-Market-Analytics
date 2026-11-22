@@ -137,6 +137,7 @@ CLI stores: `metrics`, a buy-and-hold `benchmark`, in-sample/out-of-sample `peri
 | `RATE_LIMIT_PER_MINUTE` / `HEAVY_RATE_LIMIT_PER_MINUTE` | 300 / 20 | per client address |
 | `CORS_ORIGINS` | the Vite dev server | comma-separated browser origins |
 | `MAX_UPLOAD_MB` | 200 | upload size limit |
+| `SERVE_FRONTEND` | `true` | serve the built dashboard (`frontend/dist`) at `/` when it exists; `false` for an API-only server (see [RUNNING.md](RUNNING.md)) |
 
 ## Layout
 
@@ -148,6 +149,7 @@ CLI stores: `metrics`, a buy-and-hold `benchmark`, in-sample/out-of-sample `peri
 | Database dependency, pagination, input checks, rate limiter, write access | `backend/app/api/deps.py` |
 | Endpoints | `backend/app/api/routes/{instruments,prices,indicators,analytics,imports,backtests,system,health}.py` |
 | Stock comparison maths | `backend/app/analytics/compare.py` |
+| Serving the dashboard from the same process | `backend/app/frontend.py` |
 | Tests (37) | `tests/test_api.py` |
 
 ## Troubleshooting

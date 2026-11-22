@@ -14,6 +14,7 @@ from app.api.errors import RequestLogMiddleware, install_error_handlers
 from app.api.routes import analytics, backtests, health, imports, indicators, instruments, prices, system
 from app.api.serialize import SafeJSONResponse
 from app.core.config import get_settings
+from app.frontend import mount_frontend
 from app.core.logging_config import setup_logging
 from app.db.mongo import close_client
 
@@ -55,6 +56,8 @@ def create_app() -> FastAPI:
     limited = [Depends(standard_rate_limit)]
     for module in (instruments, prices, indicators, analytics, imports, backtests, system):
         app.include_router(module.router, prefix="/api", dependencies=limited)
+    if settings.serve_frontend:
+        mount_frontend(app, settings.frontend_dist)         # last: its catch-all route must not shadow any API or docs route
     return app
 
 

@@ -45,7 +45,9 @@ def db():
 def make_client(db, tmp_path, monkeypatch):
     """A factory: make_client(api_key=..., environment=..., rate_limit_per_minute=...) -> TestClient on the temp database."""
     def factory(**overrides) -> TestClient:
-        settings = Settings(_env_file=None, data_dir=tmp_path / "data", **overrides)
+        # API tests must not depend on whether a dashboard build exists on this machine: serve the API only.
+        settings = Settings(_env_file=None, data_dir=tmp_path / "data", **{"serve_frontend": False, **overrides})
+        monkeypatch.setattr("app.main.get_settings", lambda: settings)
         monkeypatch.setattr("app.api.deps.get_settings", lambda: settings)
         monkeypatch.setattr("app.api.routes.imports.get_settings", lambda: settings)
         app = create_app()

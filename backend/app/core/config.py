@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 300
     heavy_rate_limit_per_minute: int = 20
 
+    # --- Dashboard ---
+    # When frontend/dist exists (after `npm run build`), the API process serves the dashboard at "/" too: one address, no CORS.
+    serve_frontend: bool = True
+    frontend_dist: Path = BASE_DIR / "frontend" / "dist"
+
     # --- Files ---
     data_dir: Path = BASE_DIR / "data"
     log_dir: Path = BASE_DIR / "logs"
