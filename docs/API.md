@@ -1,6 +1,6 @@
 # REST API (Phase 10)
 
-34 endpoints under `/api` for market data, instruments, indicators, analytics, comparison, import, processing, backtesting and
+36 endpoints under `/api` for market data, instruments, indicators, analytics, comparison, import, processing, backtesting, reports and
 system information. Interactive documentation with a "Try it out" button is generated automatically:
 
 ```powershell
@@ -49,8 +49,10 @@ system information. Interactive documentation with a "Try it out" button is gene
 | | `GET /backtests/leaderboard` | per-strategy medians from the stored `compare` batch, next to buy-and-hold |
 | | `GET /backtests/{run_id}`, `/trades`, `/signals` | one run, its trades, its signals |
 | | `DELETE /backtests/{run_id}` **W** | remove a stored run and its signals |
+| Reports | `GET /reports` | the eight reports, their parameters, tables, formats and row limits |
+| | `GET /reports/{report}` **H** | download one as `format=csv`, `xlsx` or `pdf` (CSV: `table=` picks a table, `table=all` gives a ZIP); the file comes as an attachment with `X-Report-Rows` and `X-Report-Filename` headers |
 
-Report generation (CSV, Excel, PDF) arrives in Phase 13.
+What each report contains, the limits and the safety rules are in [REPORTS.md](REPORTS.md).
 
 ## Conventions
 

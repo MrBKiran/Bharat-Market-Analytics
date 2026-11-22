@@ -113,7 +113,7 @@ def real_responses(db, client) -> dict:
         "search": "/api/search/prices?symbols=RELIANCE&page_size=5", "sectors": "/api/sectors", "overview": "/api/market/overview",
         "compare": "/api/compare?symbols=RELIANCE,TCS,NIFTY_50", "stats": "/api/stats", "strategies": "/api/backtests/strategies",
         "backtests_list": "/api/backtests?page_size=5", "leaderboard": "/api/backtests/leaderboard", "jobs": "/api/jobs",
-        "benchmarks": "/api/benchmarks", "error": "/api/prices/NOPE",
+        "benchmarks": "/api/benchmarks", "error": "/api/prices/NOPE", "reports_catalog": "/api/reports",
     }
     for name, url in gets.items():
         r = client.get(url)

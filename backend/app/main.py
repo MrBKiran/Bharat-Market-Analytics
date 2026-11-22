@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.deps import make_limiters, standard_rate_limit
 from app.api.errors import RequestLogMiddleware, install_error_handlers
-from app.api.routes import analytics, backtests, health, imports, indicators, instruments, prices, system
+from app.api.routes import analytics, backtests, health, imports, indicators, instruments, prices, reports, system
 from app.api.serialize import SafeJSONResponse
 from app.core.config import get_settings
 from app.frontend import mount_frontend
@@ -48,13 +48,13 @@ def create_app() -> FastAPI:
         allow_origins=settings.cors_origin_list,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["*"],
-        expose_headers=["X-Request-ID", "Retry-After"],
+        expose_headers=["X-Request-ID", "Retry-After", "Content-Disposition", "X-Report-Rows", "X-Report-Filename"],
     )
     app.add_middleware(RequestLogMiddleware)       # added last = outermost: every response, errors included, gets a request id
 
     app.include_router(health.router, prefix="/api")      # never rate limited: monitors poll it
     limited = [Depends(standard_rate_limit)]
-    for module in (instruments, prices, indicators, analytics, imports, backtests, system):
+    for module in (instruments, prices, indicators, analytics, imports, backtests, reports, system):
         app.include_router(module.router, prefix="/api", dependencies=limited)
     if settings.serve_frontend:
         mount_frontend(app, settings.frontend_dist)         # last: its catch-all route must not shadow any API or docs route

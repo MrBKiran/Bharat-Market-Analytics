@@ -47,5 +47,6 @@
   "benchmarks": ["items[].run_id:string", "items[].technology:string", "items[].operation:string", "items[].record_count:number", "items[].duration_seconds:number", "items[].is_synthetic:boolean"],
   "upload_result": ["status:string", "file:string", "counts.read:number", "counts.inserted:number", "counts.duplicates:number", "counts.rejected:number", "duration_seconds:number"],
   "processing_start": ["job_id:string", "status:string", "step:string"],
+  "reports_catalog": ["reports[].id:string", "reports[].title:string", "reports[].description:string", "reports[].params[].name:string", "reports[].tables:array", "reports[].formats:array", "formats:array", "limits.max_rows_per_table:number", "limits.max_rows_excel:number"],
   "error": ["error.code:string", "error.message:string", "error.request_id"]
 }

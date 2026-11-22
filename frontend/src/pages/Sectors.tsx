@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { useOverview, useSectors } from "../api/hooks";
+import { ExportMenu } from "../components/ExportMenu";
 import { Banner, Card, Change, DataTable, Empty, ErrorBox, Loading } from "../components/ui";
 import { SignedBars } from "../components/viz";
 import { formatDate } from "../lib/format";
@@ -30,6 +31,7 @@ export function SectorsPage() {
       <Banner kind="warn" title="Read the sector numbers with care">
         {(o.sectors.note ?? "Sectors are equal-weighted averages of the listed stocks").replace(/\.?\s*$/, ".")} Sector labels were assigned by this project, not taken from NSE; verify one before relying on a single stock.
       </Banner>
+      <ExportMenu report="sectors" label="Download sector analytics" tables={["sectors", "members"]} params={{}} />
       <div className="grid cols-2">
         <Card title="1-month ranking">
           <SignedBars rows={[...rows].sort((a, b) => ((b[1]["1m"] as number) ?? -999) - ((a[1]["1m"] as number) ?? -999)).map(([name, s]) => ({ label: name, value: s["1m"] as number, note: `${s.stocks} stock(s)` }))} />

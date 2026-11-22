@@ -99,6 +99,51 @@ export const api = {
   del: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };
 
+export interface DownloadedReport {
+  filename: string;
+  rows: number | null;
+  bytes: number;
+}
+
+/** The file name the server chose, from its Content-Disposition header (never from user input). */
+export function filenameFrom(response: Response, fallback: string): string {
+  const header = response.headers.get("content-disposition") ?? "";
+  const match = /filename="([^"]+)"/.exec(header) ?? /filename=([^;]+)/.exec(header);
+  const name = match?.[1]?.trim() ?? response.headers.get("x-report-filename") ?? fallback;
+  return name.replace(/[^A-Za-z0-9._-]/g, "_");
+}
+
+/**
+ * Ask the server to build a report and save the file in the browser. Errors (a missing symbol, no data in the range, too many rows)
+ * arrive as normal ApiErrors so the page can show the server's message. `fetch` is used rather than a plain link so a failure shows a
+ * message instead of replacing the page with JSON.
+ */
+export async function downloadReport(reportId: string, format: "csv" | "xlsx" | "pdf", params: Query = {}, table?: string): Promise<DownloadedReport> {
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(`/api/reports/${encodeURIComponent(reportId)}`, { ...params, format, table }), { headers: { Accept: "*/*" } });
+  } catch {
+    throw new ApiError(0, "network_error", "Cannot reach the server. Is the API running (uvicorn on port 8000)?");
+  }
+  if (!response.ok) throw await toApiError(response);
+  const blob = await response.blob();
+  const filename = filenameFrom(response, `${reportId}.${table === "all" ? "zip" : format}`);
+  const url = URL.createObjectURL(blob);
+  try {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.rel = "noopener";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
+  const rows = Number(response.headers.get("x-report-rows"));
+  return { filename, rows: Number.isFinite(rows) && response.headers.has("x-report-rows") ? rows : null, bytes: blob.size };
+}
+
 /** Upload a file with progress (fetch cannot report upload progress, XMLHttpRequest can). */
 export function uploadFile<T>(path: string, form: FormData, onProgress?: (fraction: number) => void): Promise<T> {
   return new Promise((resolve, reject) => {

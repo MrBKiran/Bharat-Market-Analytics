@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { useOverview, useStats } from "../api/hooks";
 import type { MoverRow, Overview as OverviewData } from "../api/types";
+import { ExportMenu } from "../components/ExportMenu";
 import { Banner, Card, Change, DataTable, Empty, ErrorBox, Loading, Stat } from "../components/ui";
 import { SignedBars } from "../components/viz";
 import { compactNumber, formatDate, formatNumber, formatPct, titleCase } from "../lib/format";
@@ -161,6 +162,7 @@ export function OverviewPage() {
           <p>{o ? `Latest trading day: ${formatDate(o.as_of)} · analytics computed ${formatDate(o.computed_at)}` : "Indian equities and indices"}</p>
         </div>
       </div>
+      {o && <ExportMenu report="performance" label="Download the performance analysis" params={{}} />}
       {body()}
       <Card title="What is in the database" subtitle="Real market data only; synthetic benchmark data is labelled separately">
         {stats.isLoading ? <Loading text="Loading…" /> : stats.isError ? <ErrorBox error={stats.error} onRetry={() => stats.refetch()} /> : (

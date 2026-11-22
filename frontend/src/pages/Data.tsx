@@ -3,6 +3,7 @@ import { useRef, useState, type DragEvent, type FormEvent } from "react";
 import { ApiError, api, uploadFile } from "../api/client";
 import { useInvalidateAfterImport, useJobs, useStartProcessing, useStats } from "../api/hooks";
 import type { Job, Paged, UploadResult } from "../api/types";
+import { ExportMenu } from "../components/ExportMenu";
 import { Badge, Banner, Card, DataTable, ErrorBox, Loading, ProgressBar, Spinner } from "../components/ui";
 import { compactNumber, formatDateTime, formatNumber, formatRatio, titleCase } from "../lib/format";
 
@@ -203,7 +204,8 @@ function JobsCard() {
 function BenchmarksCard() {
   const q = useQuery({ queryKey: ["benchmarks"], queryFn: () => api.get<Paged<{ run_id: string; technology: string; operation: string; record_count: number; duration_seconds: number; records_per_second?: number; is_synthetic: boolean }>>("/api/benchmarks", { page_size: 60 }) });
   return (
-    <Card title="Performance benchmarks" subtitle="Stored timings of the same jobs on pandas, MongoDB and Spark (real market data). More in Phase 14.">
+    <Card title="Performance benchmarks" subtitle="Stored timings of the same jobs on pandas, MongoDB and Spark (real market data). More in Phase 14."
+      actions={<ExportMenu report="benchmarks" label="Download" tables={["benchmarks", "fastest", "collections"]} params={{}} />}>
       {q.isLoading ? <Loading text="Loading benchmarks…" /> : q.isError ? <ErrorBox error={q.error} onRetry={() => q.refetch()} /> : (
         <DataTable
           rows={q.data!.items}

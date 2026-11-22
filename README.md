@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 12 complete** (dashboard and API served together at one address; React dashboard with 7 pages; 34 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md) | [docs/RUNNING.md](docs/RUNNING.md)
+> Status: **Phase 13 complete** (CSV, Excel and PDF reports; dashboard and API served together at one address; React dashboard with 8 pages; 36 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md) | [docs/REPORTS.md](docs/REPORTS.md) | [docs/RUNNING.md](docs/RUNNING.md)
 
 ## Requirements (Windows)
 
@@ -96,6 +96,16 @@ data sources and instruments. Safe to re-run; it never deletes data.
 ```
 Signals act at the next bar's open, costs and slippage are charged, every result is shown next to buy-and-hold, and the
 look-ahead guarantees are tested. Read [docs/BACKTESTING.md](docs/BACKTESTING.md) before quoting a number: the stock list has survivorship bias.
+
+## Reports and exports
+
+Eight reports (historical prices, indicators, performance, comparison, sectors, a backtest, strategy comparison, database performance) as CSV, Excel or PDF:
+
+```powershell
+curl.exe -o tcs.xlsx "http://127.0.0.1:8000/api/reports/prices?symbol=TCS&start=2025-01-01&format=xlsx"
+```
+Or use **Reports** in the dashboard, or the download buttons beside the data. Excel carries up to 100,000 rows per table, CSV up to 250,000; spreadsheet formulas in text
+are defused. Details, limits and safety rules: [docs/REPORTS.md](docs/REPORTS.md).
 
 ## Run the tests
 

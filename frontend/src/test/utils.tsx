@@ -146,4 +146,18 @@ export const JOBS = {
 export const BENCHMARKS = { items: [{ run_id: "r1", technology: "pandas", operation: "resample", record_count: 1000, duration_seconds: 0.5, records_per_second: 2000, is_synthetic: false }], page: 1, page_size: 60, total: 1, pages: 1 };
 export const UPLOAD_RESULT = { status: "dry_run", file: "TCS_NSE.csv", counts: { read: 6, inserted: 0, duplicates: 0, rejected: 0 }, duration_seconds: 0.1 };
 export const PROCESSING_START = { job_id: "analytics_analytics_2", status: "queued", step: "analytics", status_url: "/api/jobs/analytics_analytics_2" };
+const FORMATS3 = ["csv", "xlsx", "pdf"];
+export const REPORTS_CATALOG = {
+  reports: [
+    { id: "prices", title: "Historical prices", description: "Price bars for one instrument over a date range.", params: [{ name: "symbol", required: true, description: "e.g. RELIANCE" }, { name: "interval", default: "1d" }], tables: ["prices"], formats: FORMATS3 },
+    { id: "indicators", title: "Technical indicators", description: "Stored indicator values.", params: [{ name: "symbol", required: true }], tables: ["indicators"], formats: FORMATS3 },
+    { id: "performance", title: "Stock performance analysis", description: "Returns, volatility and trend.", params: [{ name: "symbols" }], tables: ["performance"], formats: FORMATS3 },
+    { id: "comparison", title: "Stock comparison", description: "Two to ten instruments over the same dates.", params: [{ name: "symbols", required: true }], tables: ["statistics", "correlation", "rebased_series"], formats: FORMATS3 },
+    { id: "sectors", title: "Sector analytics", description: "Sector performance.", params: [], tables: ["sectors", "members"], formats: FORMATS3 },
+    { id: "backtest", title: "Backtest result", description: "A stored backtest.", params: [{ name: "run_id", required: true }], tables: ["trades", "equity_curve", "periods"], formats: FORMATS3 },
+    { id: "strategies", title: "Strategy comparison", description: "Median results per strategy.", params: [{ name: "batch", default: "compare" }], tables: ["strategies"], formats: FORMATS3 },
+    { id: "benchmarks", title: "Database performance report", description: "Stored timings.", params: [{ name: "technology" }], tables: ["benchmarks", "fastest", "collections"], formats: FORMATS3 },
+  ],
+  formats: FORMATS3, limits: { max_rows_per_table: 250000, max_rows_excel: 100000 }, notes: [],
+};
 export const ERROR_BODY = { error: { code: "not_found", message: "No instrument called NOPE on NSE.", details: null, request_id: "abc12345" } };

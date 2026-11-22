@@ -3,6 +3,7 @@ import { ApiError } from "../api/client";
 import { useBacktestRun, useBacktests, useInstrument, useLeaderboard, useRunBacktest, useStrategies, type RunRequest } from "../api/hooks";
 import type { BacktestDoc, Trade } from "../api/types";
 import { ControlsBar } from "../components/ControlsBar";
+import { ExportMenu } from "../components/ExportMenu";
 import { LineChart, type LineData } from "../components/LineChart";
 import { Badge, Banner, Card, Change, DataTable, Empty, ErrorBox, Loading, Pagination, Stat } from "../components/ui";
 import { daysBetween, isIntraday } from "../lib/dates";
@@ -74,6 +75,12 @@ function ResultView({ doc, title }: { doc: BacktestDoc; title?: string }) {
         </div>
         <div className="row">{doc.stored ? <Badge kind="ok">Saved</Badge> : <Badge>Not saved</Badge>}<Badge>{doc.costs.model.name} costs</Badge></div>
       </div>
+
+      {doc.stored || doc.created_at ? (
+        <ExportMenu report="backtest" label="Download this result" tables={["trades", "equity_curve", "periods"]} params={{ run_id: doc.run_id }} />
+      ) : (
+        <p className="muted" style={{ margin: 0 }}><small>To download this result as CSV, Excel or PDF, run it again with “Save this result” ticked.</small></p>
+      )}
 
       {doc.warnings.length > 0 && (
         <Banner kind="warn" title="Read before trusting these numbers">

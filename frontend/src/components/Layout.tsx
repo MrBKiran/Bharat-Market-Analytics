@@ -4,7 +4,7 @@ import { useHealth } from "../api/hooks";
 import { getApiKey } from "../api/client";
 import { useTheme } from "../theme";
 import { ApiKeyDialog } from "./ApiKeyDialog";
-import { BrandMark, IconChart, IconCompare, IconData, IconFlask, IconHome, IconKey, IconMenu, IconMoon, IconSearch, IconSectors, IconSun } from "./icons";
+import { BrandMark, IconChart, IconCompare, IconData, IconFlask, IconHome, IconKey, IconMenu, IconMoon, IconReport, IconSearch, IconSectors, IconSun } from "./icons";
 
 const NAV = [
   { to: "/", label: "Overview", icon: <IconHome />, end: true },
@@ -13,6 +13,7 @@ const NAV = [
   { to: "/sectors", label: "Sectors", icon: <IconSectors /> },
   { to: "/search", label: "Search", icon: <IconSearch /> },
   { to: "/backtest", label: "Backtesting", icon: <IconFlask /> },
+  { to: "/reports", label: "Reports", icon: <IconReport /> },
   { to: "/data", label: "Data & imports", icon: <IconData /> },
 ];
 

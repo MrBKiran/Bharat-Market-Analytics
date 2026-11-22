@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useBars, useIndicators, useInstrument, useLatest } from "../api/hooks";
 import type { Bar } from "../api/types";
 import { ControlsBar } from "../components/ControlsBar";
+import { ExportMenu } from "../components/ExportMenu";
 import { DEFAULT_OVERLAYS, PriceChart, type Overlays } from "../components/PriceChart";
 import { Badge, Banner, Card, Change, DataTable, Empty, ErrorBox, Loading, Stat } from "../components/ui";
 import { daysBetween, isIntraday } from "../lib/dates";
@@ -128,6 +129,10 @@ export function StockPage() {
                     {indQ.isFetching && " Updating indicators…"}
                   </small>
                 </p>
+                <div className="row" style={{ justifyContent: "space-between", marginTop: "0.5rem" }}>
+                  <ExportMenu report="prices" label="Prices" params={{ symbol: controls.symbol, exchange: controls.exchange, interval: controls.interval, start: range.start, end: range.end }} />
+                  <ExportMenu report="indicators" label="Indicators" params={{ symbol: controls.symbol, exchange: controls.exchange, interval: controls.interval, start: range.start, end: range.end }} />
+                </div>
               </>
             )}
           </Card>

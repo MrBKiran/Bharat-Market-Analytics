@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { ApiError, api } from "./client";
 import type {
   BacktestDoc, BacktestSummary, BarSeries, Bar, CompareResponse, Exchange, Health, IndicatorSeries, IndicatorRow, Instrument,
-  InstrumentDetail, Interval, Job, Leaderboard, LatestPrice, Overview, Paged, PriceHit, PricesResponse, StrategiesResponse, Stats,
+  InstrumentDetail, Interval, Job, Leaderboard, LatestPrice, Overview, Paged, PriceHit, PricesResponse, ReportCatalog, StrategiesResponse, Stats,
   UploadResult,
 } from "./types";
 
@@ -223,6 +223,9 @@ export const useStartProcessing = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["jobs"] }),
   });
 };
+
+export const useReportCatalog = () =>
+  useQuery({ queryKey: ["reports"], queryFn: () => api.get<ReportCatalog>("/api/reports"), staleTime: Infinity });
 
 export const useInvalidateAfterImport = () => {
   const qc = useQueryClient();

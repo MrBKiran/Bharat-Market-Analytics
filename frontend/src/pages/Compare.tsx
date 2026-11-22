@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { api } from "../api/client";
 import { useCompare } from "../api/hooks";
 import type { CompareStat, InstrumentDetail } from "../api/types";
+import { ExportMenu } from "../components/ExportMenu";
 import { LineChart, type LineData } from "../components/LineChart";
 import { SymbolSelect } from "../components/SymbolSelect";
 import { Banner, Card, Change, DataTable, Empty, ErrorBox, Loading } from "../components/ui";
@@ -95,6 +96,7 @@ export function ComparePage() {
           <Banner kind="info">
             {compare.data.period.bars.toLocaleString("en-IN")} trading days in common, {formatDate(compare.data.period.start)} to {formatDate(compare.data.period.end)} ({compare.data.period.years} years). {compare.data.note.charAt(0).toUpperCase() + compare.data.note.slice(1)}.
           </Banner>
+          <ExportMenu report="comparison" label="Download this comparison" tables={["statistics", "correlation", "rebased_series"]} params={{ symbols: symbols.join(","), start: range.start, end: range.end }} />
           <Card title="Growth of ₹100" subtitle="Every series starts at 100 on the first common day">
             <LineChart series={series} format={(v) => formatINR(v, 1)} ariaLabel={`Rebased price comparison of ${symbols.join(", ")}`} height={380} />
           </Card>

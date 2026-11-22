@@ -280,6 +280,27 @@ export interface UploadResult {
   duration_seconds?: number;
 }
 
+export interface ReportParam {
+  name: string;
+  required?: boolean;
+  default?: string;
+  description?: string;
+}
+export interface ReportInfo {
+  id: string;
+  title: string;
+  description: string;
+  params: ReportParam[];
+  tables: string[];
+  formats: ("csv" | "xlsx" | "pdf")[];
+}
+export interface ReportCatalog {
+  reports: ReportInfo[];
+  formats: string[];
+  limits: { max_rows_per_table: number; max_rows_excel: number };
+  notes: string[];
+}
+
 export interface Health {
   status: string;
   database: { connected: boolean; server_version?: string };

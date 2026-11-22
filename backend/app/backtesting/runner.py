@@ -305,6 +305,32 @@ def _num(x):
     return None if x is None or not np.isfinite(x) else float(x)
 
 
+# ------------------------------------------------------------------------------------------- leaderboard
+LEADERBOARD_WARNING = ("survivorship bias: the stock list is today's index members; compare strategies with each other, "
+                       "not with returns you could have earned")
+
+
+def leaderboard(db: Database, batch: str = "compare", interval: str = "1d") -> Optional[dict]:
+    """Per-strategy medians over a stored comparison batch, best Sharpe first. None when the batch has no runs."""
+    docs = list(db["backtest_results"].find({"batch": batch, "interval": interval},
+                                            {"_id": 0, "strategy": 1, "symbol": 1, "metrics": 1, "benchmark.total_return_pct": 1,
+                                             "benchmark.sharpe": 1, "excess_return_pct": 1, "periods": 1}))
+    if not docs:
+        return None
+    rows = [{"strategy": d["strategy"], **{k: d["metrics"].get(k) for k in ("total_trades", "win_rate_pct", "profit_factor", "total_return_pct",
+            "max_drawdown_pct", "sharpe", "avg_risk_reward")}, "buy_hold_return_pct": d["benchmark"].get("total_return_pct"),
+            "buy_hold_sharpe": d["benchmark"].get("sharpe"), "excess_return_pct": d.get("excess_return_pct"),
+            "oos_return_pct": (d.get("periods") or {}).get("out_of_sample", {}).get("total_return_pct")} for d in docs]
+    frame = pd.DataFrame(rows)
+    out = []
+    for name, g in frame.groupby("strategy"):
+        med = g.drop(columns="strategy").apply(pd.to_numeric, errors="coerce").median()
+        out.append({"strategy": name, "stocks": int(len(g)), "beat_buy_and_hold": int((g["excess_return_pct"] > 0).sum()),
+                    **{f"median_{k}": (None if pd.isna(v) else round(float(v), 4)) for k, v in med.items()}})
+    out.sort(key=lambda r: (r["median_sharpe"] is None, -(r["median_sharpe"] or 0)))
+    return {"batch": batch, "interval": interval, "runs": len(docs), "strategies": out, "warning": LEADERBOARD_WARNING}
+
+
 # ------------------------------------------------------------------------------------------ reading back
 def list_runs(db: Database, *, symbol: Optional[str] = None, strategy: Optional[str] = None, limit: int = 50) -> list[dict]:
     query = {k: v for k, v in (("symbol", symbol), ("strategy", strategy)) if v}

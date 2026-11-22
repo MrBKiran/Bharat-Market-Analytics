@@ -16,6 +16,7 @@ export const IconSectors = () => <Icon><circle cx="12" cy="12" r="9" /><path d="
 export const IconSearch = () => <Icon><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></Icon>;
 export const IconFlask = () => <Icon><path d="M9 3h6" /><path d="M10 3v6L4.5 19a1.5 1.5 0 001.3 2.2h12.4a1.5 1.5 0 001.3-2.2L14 9V3" /></Icon>;
 export const IconData = () => <Icon><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5" /><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></Icon>;
+export const IconReport = () => <Icon><path d="M6 2h9l5 5v15H6z" /><path d="M15 2v5h5" /><path d="M9 13h8M9 17h8M9 9h3" /></Icon>;
 export const IconSun = () => <Icon><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></Icon>;
 export const IconMoon = () => <Icon><path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z" /></Icon>;
 export const IconMenu = () => <Icon><path d="M3 6h18M3 12h18M3 18h18" /></Icon>;

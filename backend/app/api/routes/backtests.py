@@ -15,7 +15,6 @@ import re
 from datetime import datetime, timezone
 from typing import Literal, Optional
 
-import pandas as pd
 from fastapi import Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 from pymongo.database import Database
@@ -152,24 +151,10 @@ def list_runs(symbol: Optional[str] = None, strategy: Optional[str] = Query(None
 @router.get("/backtests/leaderboard", summary="Per-strategy summary of stored comparison runs")
 def leaderboard(batch: str = Query("compare", max_length=40), interval: Literal["1d", "1m", "5m", "15m", "30m", "1h"] = "1d",
                 db: Database = Depends(get_database)):
-    docs = list(db["backtest_results"].find({"batch": batch, "interval": interval},
-                                            {"_id": 0, "strategy": 1, "symbol": 1, "metrics": 1, "benchmark.total_return_pct": 1,
-                                             "benchmark.sharpe": 1, "excess_return_pct": 1, "periods": 1}))
-    if not docs:
+    board = runner.leaderboard(db, batch, interval)
+    if board is None:
         raise ApiError(404, "no_runs", f"No stored runs in batch {batch!r}. Run `scripts/backtest.py compare` first.")
-    rows = [{"strategy": d["strategy"], **{k: d["metrics"].get(k) for k in ("total_trades", "win_rate_pct", "profit_factor", "total_return_pct",
-            "max_drawdown_pct", "sharpe", "avg_risk_reward")}, "buy_hold_return_pct": d["benchmark"].get("total_return_pct"),
-            "buy_hold_sharpe": d["benchmark"].get("sharpe"), "excess_return_pct": d.get("excess_return_pct"),
-            "oos_return_pct": (d.get("periods") or {}).get("out_of_sample", {}).get("total_return_pct")} for d in docs]
-    frame = pd.DataFrame(rows)
-    out = []
-    for name, g in frame.groupby("strategy"):
-        med = g.drop(columns="strategy").apply(pd.to_numeric, errors="coerce").median()
-        out.append({"strategy": name, "stocks": int(len(g)), "beat_buy_and_hold": int((g["excess_return_pct"] > 0).sum()),
-                    **{f"median_{k}": (None if pd.isna(v) else round(float(v), 4)) for k, v in med.items()}})
-    out.sort(key=lambda r: (r["median_sharpe"] is None, -(r["median_sharpe"] or 0)))
-    return {"batch": batch, "interval": interval, "runs": len(docs), "strategies": out,
-            "warning": "survivorship bias: the stock list is today's index members; compare strategies with each other, not with returns you could have earned"}
+    return board
 
 
 def _run_id(run_id: str) -> str:
