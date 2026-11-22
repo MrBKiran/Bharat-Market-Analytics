@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 10 complete** (34 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md)
+> Status: **Phase 11 complete** (React dashboard with 7 pages; 34 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md)
 
 ## Requirements (Windows)
 
@@ -28,6 +28,17 @@ copy .env.example .env
 - Interactive API docs (try every endpoint in the browser): http://127.0.0.1:8000/docs
 - 34 endpoints: market data, instruments, indicators, analytics, comparison, import, processing, backtesting. Endpoints that change
   data need the `X-API-Key` header when `API_KEY` is set in `.env`; all endpoints are rate limited. See [docs/API.md](docs/API.md).
+
+## Run the dashboard
+
+```powershell
+cd frontend
+npm install          # first time only
+npm run dev          # http://localhost:5173 (needs the API above running)
+npm test             # 68 frontend tests
+```
+Overview, interactive stock charts, comparison, sectors, search, strategy backtesting and data import with live progress; light and
+dark themes; works on phones. See [docs/DASHBOARD.md](docs/DASHBOARD.md).
 
 ## Set up the database
 
