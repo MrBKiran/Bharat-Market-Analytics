@@ -204,7 +204,7 @@ function JobsCard() {
 function BenchmarksCard() {
   const q = useQuery({ queryKey: ["benchmarks"], queryFn: () => api.get<Paged<{ run_id: string; technology: string; operation: string; record_count: number; duration_seconds: number; records_per_second?: number; is_synthetic: boolean }>>("/api/benchmarks", { page_size: 60 }) });
   return (
-    <Card title="Performance benchmarks" subtitle="Stored timings of the same jobs on pandas, MongoDB and Spark (real market data). More in Phase 14."
+    <Card title="Performance benchmarks" subtitle="Stored timings of the same jobs on pandas, MongoDB and Spark, real and synthetic data labelled separately. Charts are on the Performance page."
       actions={<ExportMenu report="benchmarks" label="Download" tables={["benchmarks", "fastest", "collections"]} params={{}} />}>
       {q.isLoading ? <Loading text="Loading benchmarks…" /> : q.isError ? <ErrorBox error={q.error} onRetry={() => q.refetch()} /> : (
         <DataTable

@@ -22,7 +22,7 @@ Open http://localhost:5173. In development Vite forwards every `/api` request to
 | Command (in `frontend/`) | Does |
 |---|---|
 | `npm run dev` | development server with hot reload |
-| `npm test` | 111 tests (Vitest, Testing Library), including the shared API contract |
+| `npm test` | 126 tests (Vitest, Testing Library), including the shared API contract |
 | `npm run typecheck` | TypeScript strict check |
 | `npm run build` | type-check and production build into `frontend/dist` (about 174 KB gzipped) |
 
@@ -37,6 +37,7 @@ Open http://localhost:5173. In development Vite forwards every `/api` request to
 | **Search** | Instrument search with filters, add and activate/deactivate; historical price search (date, price, volume, data flag) | `/instruments`, `/search/prices` |
 | **Backtesting** | Choose symbol, exchange, timeframe, dates, strategy and its parameters, costs, slippage, capital, sizing; results with equity curve against buy-and-hold, in-sample vs out-of-sample, trades, assumptions, rough tax; stored strategy comparison; saved runs | `/backtests/*` |
 | **Reports** | A card per report (prices, indicators, performance, comparison, sectors, a saved backtest, strategy comparison, database performance) with its options and CSV / Excel / PDF buttons; the other pages have the same buttons beside their data | `/reports`, `/reports/{report}` |
+| **Performance** | Charts of how ingestion speed, storage, query time and aggregation time scale from 100 thousand to 10 million records on pandas, MongoDB and Spark; CPU and memory per job; jobs that failed or were skipped. A switch keeps **synthetic** (generated, labelled) and **real market data** timings apart | `/benchmarks/scaling` |
 | **Data & imports** | Upload a CSV/XLSX file with upload progress and a dry-run option; start adjust / indicators / analytics / audit; jobs with live progress; collection counts; benchmarks | `/imports/upload`, `/processing/*`, `/jobs`, `/stats`, `/benchmarks` |
 
 ## How it meets the interface requirements
@@ -85,8 +86,8 @@ Open http://localhost:5173. In development Vite forwards every `/api` request to
 | `frontend/src/lib` | `format.ts` (INR, lakh/crore, IST dates), `dates.ts` (range presets, chart times) |
 | `frontend/src/state`, `theme.tsx` | shared controls (symbol, exchange, timeframe, range) and the theme |
 | `frontend/src/components` | layout, selectors, charts (`PriceChart`, `LineChart`), `ui.tsx` building blocks, heat-map and bars |
-| `frontend/src/pages` | the eight pages |
-| `frontend/src/test` | 111 tests: formatting, dates, API client and paging, components, every page against a mocked API, and `contract.json` shared with the backend tests |
+| `frontend/src/pages` | the nine pages |
+| `frontend/src/test` | 126 tests: formatting, dates, API client and paging, components, every page against a mocked API, and `contract.json` shared with the backend tests |
 
 ## Troubleshooting
 

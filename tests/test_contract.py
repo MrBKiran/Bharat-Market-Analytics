@@ -95,6 +95,15 @@ def world(db, make_client):
     runner.compare(db, ["RELIANCE", "TCS"], ["ema_crossover", "rsi_reversal"])              # the "compare" batch behind the leaderboard
     db["benchmark_results"].insert_one({"run_id": "r1", "technology": "pandas", "operation": "resample", "record_count": 1000, "duration_seconds": 0.5,
                                         "is_synthetic": False, "created_at": datetime.now(timezone.utc)})
+    now = datetime.now(timezone.utc)                                                          # a synthetic scale run, so the scaling shape is non-vacuous
+    db["benchmark_results"].insert_many([
+        {"run_id": "scale_1000", "technology": "ingestion", "operation": "ingest_parquet", "record_count": 1000, "duration_seconds": 0.2, "records_per_second": 5000.0,
+         "cpu_percent": 100.0, "memory_mb": 150.0, "storage_mb": 0.1, "is_synthetic": True, "answers_match": True, "created_at": now},
+        {"run_id": "scale_1000", "technology": "pandas", "operation": "agg_daily_range_stats", "record_count": 1000, "duration_seconds": 0.1, "records_per_second": 10000.0,
+         "cpu_percent": 120.0, "memory_mb": 180.0, "is_synthetic": True, "answers_match": True, "created_at": now}])
+    db["benchmark_runs"].insert_one({"run_id": "scale_1000", "records": 1000, "is_synthetic": True, "dataset": {"rows": 1000, "symbols": 5}, "storage": {"parquet_mb": 0.1},
+                                     "environment": {"cpu_cores": 12, "ram_gb": 15.7}, "config": {}, "created_at": now,
+                                     "outcomes": [{"operation": "agg_daily_range_stats", "technology": "pyspark", "status": "skipped", "error": "not enough free memory"}]})
     return db, make_client(rate_limit_enabled=False)
 
 
@@ -113,7 +122,7 @@ def real_responses(db, client) -> dict:
         "search": "/api/search/prices?symbols=RELIANCE&page_size=5", "sectors": "/api/sectors", "overview": "/api/market/overview",
         "compare": "/api/compare?symbols=RELIANCE,TCS,NIFTY_50", "stats": "/api/stats", "strategies": "/api/backtests/strategies",
         "backtests_list": "/api/backtests?page_size=5", "leaderboard": "/api/backtests/leaderboard", "jobs": "/api/jobs",
-        "benchmarks": "/api/benchmarks", "error": "/api/prices/NOPE", "reports_catalog": "/api/reports",
+        "benchmarks": "/api/benchmarks", "benchmarks_scaling": "/api/benchmarks/scaling", "error": "/api/prices/NOPE", "reports_catalog": "/api/reports",
     }
     for name, url in gets.items():
         r = client.get(url)

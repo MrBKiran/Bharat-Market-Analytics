@@ -38,10 +38,11 @@ def returns_volatility_latest(db: Database, window: int = 20) -> list[dict]:
     return out
 
 
-def daily_range_stats(db: Database, interval: str = None, symbols: list[str] = None) -> dict:
+def daily_range_stats(db: Database, interval: str = None, symbols: list[str] = None, collection: str = "intraday_prices") -> dict:
     """Bars, highest high, lowest low, volume and mean close per symbol, interval and IST day.
 
     Returns only the totals ({groups, bars, volume}); the grouping over all the bars is the work being timed.
+    `collection` is `intraday_prices` unless the Phase 14 scale benchmark points it at its synthetic collection.
     """
     match: dict = {}
     if interval:
@@ -55,12 +56,12 @@ def daily_range_stats(db: Database, interval: str = None, symbols: list[str] = N
                     "volume": {"$sum": {"$ifNull": ["$volume", 0]}}, "mean_close": {"$avg": "$close"}}},
         {"$group": {"_id": None, "groups": {"$sum": 1}, "bars": {"$sum": "$bars"}, "volume": {"$sum": "$volume"}}},
     ]
-    rows = list(db["intraday_prices"].aggregate(pipeline, allowDiskUse=True))
+    rows = list(db[collection].aggregate(pipeline, allowDiskUse=True))
     return {"groups": rows[0]["groups"], "bars": rows[0]["bars"], "volume": float(rows[0]["volume"])} if rows else \
         {"groups": 0, "bars": 0, "volume": 0.0}
 
 
-def resample_totals(db: Database, symbols: list[str], minutes: int = 5) -> dict:
+def resample_totals(db: Database, symbols: list[str], minutes: int = 5, collection: str = "intraday_prices") -> dict:
     """Combine 1-minute bars into `minutes`-minute bars inside MongoDB; returns {bars, volume, mean_close}."""
     pipeline = [
         {"$match": {"meta.interval": "1m", "meta.symbol": {"$in": symbols}}},
@@ -71,6 +72,6 @@ def resample_totals(db: Database, symbols: list[str], minutes: int = 5) -> dict:
                     "volume": {"$sum": {"$ifNull": ["$volume", 0]}}}},
         {"$group": {"_id": None, "bars": {"$sum": 1}, "volume": {"$sum": "$volume"}, "mean_close": {"$avg": "$close"}}},
     ]
-    rows = list(db["intraday_prices"].aggregate(pipeline, allowDiskUse=True))
+    rows = list(db[collection].aggregate(pipeline, allowDiskUse=True))
     return {"bars": rows[0]["bars"], "volume": float(rows[0]["volume"]), "mean_close": float(rows[0]["mean_close"])} if rows else \
         {"bars": 0, "volume": 0.0, "mean_close": 0.0}

@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     mongo_uri: SecretStr = SecretStr("mongodb://localhost:27017")
     mongo_db_name: str = "BharatMarketDB"
     mongo_timeout_ms: int = 5000
+    # Phase 14: synthetic benchmark data lives in its OWN database so it can never mix with the real market data.
+    bench_db_name: str = "BharatMarketBenchmark"
 
     # --- API ---
     # Comma-separated list of allowed browser origins (the React dev server).

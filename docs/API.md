@@ -1,6 +1,6 @@
 # REST API (Phase 10)
 
-36 endpoints under `/api` for market data, instruments, indicators, analytics, comparison, import, processing, backtesting, reports and
+37 endpoints under `/api` for market data, instruments, indicators, analytics, comparison, import, processing, backtesting, reports and
 system information. Interactive documentation with a "Try it out" button is generated automatically:
 
 ```powershell
@@ -21,6 +21,7 @@ system information. Interactive documentation with a "Try it out" button is gene
 | System | `GET /health` | API and database status (never rate limited) |
 | | `GET /stats` | collection sizes, database size, daily-data date range |
 | | `GET /benchmarks` | stored performance benchmark results (filter: `technology`, `operation`, `is_synthetic`) |
+| | `GET /benchmarks/scaling` | the same results grouped for charts: job, technology and data size, **real and synthetic in separate sections**, plus the jobs that failed or were skipped and the machine they ran on |
 | | `GET /quality/reports` | data-quality reports (`dataset`, `include_issues`) |
 | Instruments | `GET /instruments` | list, search (`q`), filter (`instrument_type`, `sector`, `exchange`, `active`), paginated |
 | | `GET /instruments/{symbol}` | one instrument with its data coverage (daily bars, first/last date, intraday coverage) |

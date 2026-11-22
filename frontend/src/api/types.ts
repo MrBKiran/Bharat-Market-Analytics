@@ -301,6 +301,53 @@ export interface ReportCatalog {
   notes: string[];
 }
 
+// GET /api/benchmarks/scaling: timings grouped by job, technology and data size. `synthetic` is generated data (the
+// 100,000 to 10,000,000 record ladder); `real` is the actual market data. They are never mixed.
+export interface BenchmarkPoint {
+  records: number;
+  seconds: number;
+  records_per_second: number | null;
+  cpu_percent: number | null;
+  memory_mb: number | null;
+  storage_mb: number | null;
+  answers_match: boolean;
+  run_id: string;
+  measured_at: string;
+}
+export interface BenchmarkSeries {
+  technology: string;
+  points: BenchmarkPoint[];
+}
+export interface BenchmarkJob {
+  operation: string;
+  kind: "ingestion" | "query" | "aggregation";
+  series: BenchmarkSeries[];
+}
+export interface BenchmarkView {
+  sizes: number[];
+  operations: BenchmarkJob[];
+}
+export interface NotMeasured {
+  operation: string;
+  technology: string;
+  status: "failed" | "skipped";
+  error: string;
+}
+export interface ScaleRun {
+  run_id: string;
+  records: number;
+  created_at: string;
+  dataset: { rows: number; symbols: number; seed?: number } | null;
+  environment: { cpu_cores: number; ram_gb: number; free_ram_gb_at_start?: number; mongod?: string | null; pyspark?: string | null } | null;
+  storage: Record<string, number> | null;
+  not_measured: NotMeasured[];
+}
+export interface BenchmarkScaling {
+  synthetic: BenchmarkView & { runs: ScaleRun[] };
+  real: BenchmarkView;
+  notes: string[];
+}
+
 export interface Health {
   status: string;
   database: { connected: boolean; server_version?: string };

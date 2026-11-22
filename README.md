@@ -2,8 +2,8 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 13 complete** (CSV, Excel and PDF reports; dashboard and API served together at one address; React dashboard with 8 pages; 36 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md) | [docs/REPORTS.md](docs/REPORTS.md) | [docs/RUNNING.md](docs/RUNNING.md)
+> Status: **Phase 14 complete** (performance tests from 100,000 to 10 million records; CSV, Excel and PDF reports; dashboard and API served together at one address; React dashboard with 9 pages; 37 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md) | [docs/REPORTS.md](docs/REPORTS.md) | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | [docs/RUNNING.md](docs/RUNNING.md)
 
 ## Requirements (Windows)
 
@@ -96,6 +96,15 @@ data sources and instruments. Safe to re-run; it never deletes data.
 ```
 Signals act at the next bar's open, costs and slippage are charged, every result is shown next to buy-and-hold, and the
 look-ahead guarantees are tested. Read [docs/BACKTESTING.md](docs/BACKTESTING.md) before quoting a number: the stock list has survivorship bias.
+
+## Performance testing at scale
+
+```powershell
+.venv\Scripts\python scripts\performance.py run      # 100K, 1M, 5M, 10M records: ingestion, storage, queries, aggregations on pandas, MongoDB, Spark
+.venv\Scripts\python scripts\performance.py report   # the stored results
+```
+The 100K to 10M sizes use clearly labelled **synthetic** data in a separate database; results are charted on the dashboard's **Performance** page, which keeps them apart from the
+real-data timings. Close heavy programs first (10M needs several GB of free memory). Method, results and limits: [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
 
 ## Reports and exports
 

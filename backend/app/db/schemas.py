@@ -483,6 +483,7 @@ BENCHMARK_RESULTS = CollectionSpec(
             "memory_mb": NON_NEG,
             "storage_mb": NON_NEG,
             "is_synthetic": BOOL,
+            "answers_match": BOOL,          # Phase 14: did every engine give the same answer on this job
             "notes": STR,
             "created_at": DATE,
         },
@@ -490,6 +491,30 @@ BENCHMARK_RESULTS = CollectionSpec(
     indexes=(
         IndexSpec("idx_tech_op_count", (("technology", ASC), ("operation", ASC), ("record_count", ASC))),
         IndexSpec("idx_run_id", (("run_id", ASC),)),
+    ),
+)
+
+BENCHMARK_RUNS = CollectionSpec(
+    name="benchmark_runs",
+    description="Phase 14: one document per scale-benchmark run (one dataset size): the machine and settings it ran on, the "
+                "synthetic dataset's description and every job's outcome, including jobs that failed or were skipped "
+                "(those have no timing, so they are not in benchmark_results).",
+    validator=schema(
+        ["run_id", "records", "is_synthetic", "environment", "outcomes", "created_at"],
+        {
+            "run_id": STR,
+            "records": INT_NON_NEG,
+            "is_synthetic": BOOL,
+            "dataset": OBJ,
+            "environment": OBJ,
+            "config": OBJ,
+            "outcomes": ARR,
+            "created_at": DATE,
+        },
+    ),
+    indexes=(
+        IndexSpec("idx_run_id", (("run_id", ASC),)),
+        IndexSpec("idx_records_created", (("records", ASC), ("created_at", DESC))),
     ),
 )
 
@@ -543,5 +568,5 @@ REQUIRED_COLLECTIONS = (
 COLLECTIONS: tuple[CollectionSpec, ...] = (
     STOCK_PRICES, INTRADAY_PRICES, MARKET_INDICES, INSTRUMENTS, CORPORATE_ACTIONS, MARKET_SOURCES,
     INDICATORS, TRADING_SIGNALS, BACKTEST_RESULTS, PROCESSING_JOBS, ANALYTICS_RESULTS, ECONOMIC_DATA,
-    IMPORT_FILES, INTRADAY_COVERAGE, DATA_QUALITY_REPORTS, BENCHMARK_RESULTS, ADJUSTED_PRICES,
+    IMPORT_FILES, INTRADAY_COVERAGE, DATA_QUALITY_REPORTS, BENCHMARK_RESULTS, ADJUSTED_PRICES, BENCHMARK_RUNS,
 )

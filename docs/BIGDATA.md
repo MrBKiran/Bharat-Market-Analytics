@@ -2,6 +2,7 @@
 
 The same jobs run on three engines (pandas, MongoDB aggregation, Apache Spark), their answers are checked against each
 other, and they are timed. Spark also produces six analyses that are stored in `analytics_results`.
+This page covers the **real data** (up to 5.4 million rows); the 100,000 to 10 million record ladder on generated data, with ingestion, storage and queries, is in [PERFORMANCE.md](PERFORMANCE.md).
 
 ```powershell
 .venv\Scripts\python scripts\bigdata.py check        # is Spark installed, and does it start?

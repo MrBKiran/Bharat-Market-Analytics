@@ -45,6 +45,14 @@
   ],
   "jobs": ["items[].job_id:string", "items[].job_type:string", "items[].status:string", "items[].progress:number", "items[].created_at:string", "total:number", "page:number", "pages:number"],
   "benchmarks": ["items[].run_id:string", "items[].technology:string", "items[].operation:string", "items[].record_count:number", "items[].duration_seconds:number", "items[].is_synthetic:boolean"],
+  "benchmarks_scaling": [
+    "synthetic.sizes:array", "synthetic.operations[].operation:string", "synthetic.operations[].kind:string", "synthetic.operations[].series[].technology:string",
+    "synthetic.operations[].series[].points[].records:number", "synthetic.operations[].series[].points[].seconds:number", "synthetic.operations[].series[].points[].records_per_second",
+    "synthetic.operations[].series[].points[].cpu_percent:number", "synthetic.operations[].series[].points[].memory_mb:number", "synthetic.operations[].series[].points[].storage_mb",
+    "synthetic.operations[].series[].points[].answers_match:boolean", "synthetic.runs[].records:number", "synthetic.runs[].environment.cpu_cores:number",
+    "synthetic.runs[].not_measured:array", "real.sizes:array", "real.operations[].operation:string", "real.operations[].series[].technology:string",
+    "real.operations[].series[].points[].records:number", "real.operations[].series[].points[].seconds:number", "real.operations[].series[].points[].answers_match:boolean", "notes:array"
+  ],
   "upload_result": ["status:string", "file:string", "counts.read:number", "counts.inserted:number", "counts.duplicates:number", "counts.rejected:number", "duration_seconds:number"],
   "processing_start": ["job_id:string", "status:string", "step:string"],
   "reports_catalog": ["reports[].id:string", "reports[].title:string", "reports[].description:string", "reports[].params[].name:string", "reports[].tables:array", "reports[].formats:array", "formats:array", "limits.max_rows_per_table:number", "limits.max_rows_excel:number"],

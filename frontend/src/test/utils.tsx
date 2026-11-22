@@ -144,6 +144,39 @@ export const JOBS = {
   page: 1, page_size: 15, total: 2, pages: 1,
 };
 export const BENCHMARKS = { items: [{ run_id: "r1", technology: "pandas", operation: "resample", record_count: 1000, duration_seconds: 0.5, records_per_second: 2000, is_synthetic: false }], page: 1, page_size: 60, total: 1, pages: 1 };
+const pt = (records: number, seconds: number, extra: Record<string, unknown> = {}) => ({
+  records, seconds, records_per_second: null, cpu_percent: 100, memory_mb: 200, storage_mb: null, answers_match: true,
+  run_id: `scale_${records}`, measured_at: "2026-11-22T10:00:00Z", ...extra,
+});
+export const BENCHMARK_SCALING = {
+  synthetic: {
+    sizes: [100_000, 1_000_000, 5_000_000],
+    operations: [
+      { operation: "ingest_parquet", kind: "ingestion", series: [{ technology: "ingestion", points: [
+        pt(100_000, 0.3, { records_per_second: 333_333, storage_mb: 2.4 }), pt(1_000_000, 0.6, { records_per_second: 1_666_666, storage_mb: 19 }), pt(5_000_000, 3, { records_per_second: 1_700_000, storage_mb: 95 })] }] },
+      { operation: "ingest_mongodb_timeseries", kind: "ingestion", series: [{ technology: "ingestion", points: [
+        pt(100_000, 1.4, { records_per_second: 71_000, storage_mb: 0.7 }), pt(1_000_000, 12.8, { records_per_second: 78_000, storage_mb: 7.3 }), pt(5_000_000, 64, { records_per_second: 78_000, storage_mb: 37 })] }] },
+      { operation: "query_symbol_window", kind: "query", series: [
+        { technology: "mongodb_aggregation", points: [pt(100_000, 0.004), pt(1_000_000, 0.01), pt(5_000_000, 0.02)] },
+        { technology: "pandas", points: [pt(100_000, 0.02), pt(1_000_000, 0.04), pt(5_000_000, 0.2)] }] },
+      { operation: "agg_daily_range_stats", kind: "aggregation", series: [
+        { technology: "mongodb_aggregation", points: [pt(100_000, 0.16, { records_per_second: 624_000 }), pt(1_000_000, 1.57, { records_per_second: 637_000 }), pt(5_000_000, 8, { records_per_second: 625_000 })] },
+        { technology: "pandas", points: [pt(100_000, 0.1, { records_per_second: 1_034_000 }), pt(1_000_000, 0.65, { records_per_second: 1_549_000 })] },
+        { technology: "pyspark", points: [pt(100_000, 0.88, { records_per_second: 113_000 }), pt(1_000_000, 1.15, { records_per_second: 867_000, answers_match: false })] }] },
+    ],
+    runs: [
+      { run_id: "scale_100000", records: 100_000, created_at: "2026-11-22T10:00:00Z", dataset: { rows: 100_000, symbols: 50, seed: 14 }, environment: { cpu_cores: 12, ram_gb: 15.7 }, storage: { parquet_mb: 2.4 }, not_measured: [] },
+      { run_id: "scale_5000000", records: 5_000_000, created_at: "2026-11-22T11:00:00Z", dataset: { rows: 5_000_000, symbols: 50, seed: 14 }, environment: { cpu_cores: 12, ram_gb: 15.7 }, storage: { parquet_mb: 95 },
+        not_measured: [{ operation: "agg_daily_range_stats", technology: "pandas", status: "skipped", error: "not enough free memory: this job needs about 1.9 GB and 1.0 GB is free" }] },
+    ],
+  },
+  real: {
+    sizes: [1_048_738, 2_097_443],
+    operations: [{ operation: "intraday_resample_1m_to_5m", kind: "aggregation", series: [
+      { technology: "pandas", points: [pt(1_048_738, 0.65), pt(2_097_443, 1.6)] }, { technology: "mongodb_aggregation", points: [pt(1_048_738, 1.89), pt(2_097_443, 7.01)] }] }],
+  },
+  notes: ["Synthetic results come from generated 1-minute bars in a separate database; real results are Phase 8 timings on the actual market data."],
+};
 export const UPLOAD_RESULT = { status: "dry_run", file: "TCS_NSE.csv", counts: { read: 6, inserted: 0, duplicates: 0, rejected: 0 }, duration_seconds: 0.1 };
 export const PROCESSING_START = { job_id: "analytics_analytics_2", status: "queued", step: "analytics", status_url: "/api/jobs/analytics_analytics_2" };
 const FORMATS3 = ["csv", "xlsx", "pdf"];

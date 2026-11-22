@@ -597,6 +597,40 @@ def test_stats_benchmarks_and_quality_reports(client, db):
     assert client.get("/api/quality/reports?dataset=nothing").json()["total"] == 0
 
 
+def test_benchmark_scaling_groups_by_job_and_size_and_keeps_real_and_synthetic_apart(client, db):
+    t0, t1 = datetime(2026, 1, 1, tzinfo=UTC), datetime(2026, 2, 1, tzinfo=UTC)
+
+    def put(tech, op, n, secs, synthetic, at, **extra):
+        db["benchmark_results"].insert_one({"run_id": f"r{at.month}", "technology": tech, "operation": op, "record_count": n, "duration_seconds": secs,
+                                            "is_synthetic": synthetic, "created_at": at, **extra})
+    put("pandas", "agg_daily_range_stats", 1_000, 0.5, True, t0)
+    put("pandas", "agg_daily_range_stats", 1_000, 0.4, True, t1)                              # a newer measurement of the same thing wins
+    put("pandas", "agg_daily_range_stats", 10_000, 4.0, True, t1, answers_match=False)
+    put("ingestion", "ingest_mongodb_timeseries", 1_000, 2.0, True, t1, storage_mb=3.5, records_per_second=500.0)
+    put("mongodb_aggregation", "query_symbol_window", 1_000, 0.01, True, t1)
+    put("pandas", "intraday_resample_1m_to_5m[1_indices]", 1_000_000, 0.65, False, t0)         # Phase 8 real results: the "[n_indices]" suffix is merged
+    put("pandas", "intraday_resample_1m_to_5m[2_indices]", 2_000_000, 1.6, False, t0, notes="DIFFERENT ANSWER from the first engine")
+    db["benchmark_runs"].insert_one({"run_id": "r2", "records": 1_000, "is_synthetic": True, "dataset": {"rows": 1_000}, "environment": {"cpu_cores": 12}, "outcomes": [
+        {"operation": "agg_daily_range_stats", "technology": "pyspark", "status": "failed", "error": "OutOfMemoryError"},
+        {"operation": "agg_daily_range_stats", "technology": "pandas", "status": "ok", "seconds": 0.4}], "created_at": t1})
+    body = client.get("/api/benchmarks/scaling").json()
+    syn, real = body["synthetic"], body["real"]
+    assert syn["sizes"] == [1_000, 10_000] and [o["operation"] for o in syn["operations"]] == [
+        "ingest_mongodb_timeseries", "query_symbol_window", "agg_daily_range_stats"]                  # ingestion, then queries, then aggregations
+    assert [o["kind"] for o in syn["operations"]] == ["ingestion", "query", "aggregation"]
+    agg = syn["operations"][2]["series"][0]
+    assert agg["technology"] == "pandas" and [(p["records"], p["seconds"], p["answers_match"]) for p in agg["points"]] == [(1_000, 0.4, True), (10_000, 4.0, False)]
+    assert syn["operations"][0]["series"][0]["points"][0]["storage_mb"] == 3.5
+    assert syn["runs"][0]["not_measured"] == [{"operation": "agg_daily_range_stats", "technology": "pyspark", "status": "failed", "error": "OutOfMemoryError"}]
+    assert [o["operation"] for o in real["operations"]] == ["intraday_resample_1m_to_5m"]           # real data never appears in the synthetic section
+    assert [(p["records"], p["answers_match"]) for p in real["operations"][0]["series"][0]["points"]] == [(1_000_000, True), (2_000_000, False)]
+
+
+def test_benchmark_scaling_is_empty_but_well_formed_with_no_results(client):
+    body = client.get("/api/benchmarks/scaling").json()
+    assert body["synthetic"] == {"sizes": [], "operations": [], "runs": []} and body["real"] == {"sizes": [], "operations": []}
+
+
 def test_openapi_documents_every_endpoint(client):
     spec = client.get("/openapi.json").json()
     operations = [(m, p) for p, ops in spec["paths"].items() for m in ops]

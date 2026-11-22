@@ -37,8 +37,10 @@ INDEX_SYMBOLS = ["NIFTY_50", "NIFTY_BANK", "NIFTY_IT", "NIFTY_FIN_SERVICE"]
 class ResourceSampler:
     """Samples memory (peak resident set) and CPU seconds of this process tree while a block runs."""
 
-    def __init__(self, include_mongod: bool = False, every: float = 0.1):
-        self.include_mongod, self.every = include_mongod, every
+    def __init__(self, include_mongod: bool = False, every: float = 0.1, children: bool = True):
+        # children=False samples only this process: for an engine that runs in-process (pandas) it keeps another
+        # engine's child process (Spark's JVM, alive for the whole session) out of the figure.
+        self.include_mongod, self.every, self.children = include_mongod, every, children
         self.peak_rss = 0
         self.baseline_rss = None          # resident memory when the block started
         self._first: dict = {}
@@ -48,7 +50,7 @@ class ResourceSampler:
 
     def _processes(self) -> list:
         me = psutil.Process()
-        procs = [me, *me.children(recursive=True)]
+        procs = [me, *(me.children(recursive=True) if self.children else [])]
         if self.include_mongod:
             procs += [p for p in psutil.process_iter(["name"]) if (p.info["name"] or "").lower().startswith("mongod")]
         return procs
@@ -97,7 +99,7 @@ class ResourceSampler:
         return sum(self._last[pid] - self._first[pid] for pid in self._last)
 
 
-def measure(fn: Callable[[], dict], *, runs: int = 3, warmup: bool = True, include_mongod: bool = False) -> dict:
+def measure(fn: Callable[[], dict], *, runs: int = 3, warmup: bool = True, include_mongod: bool = False, children: bool = True) -> dict:
     """Time `fn` (which returns a fingerprint). One untimed warm-up, then `runs` timed runs."""
     first_run = None
     if warmup:
@@ -106,7 +108,7 @@ def measure(fn: Callable[[], dict], *, runs: int = 3, warmup: bool = True, inclu
         first_run = time.perf_counter() - t0
     samples, fingerprint = [], None
     for _ in range(runs):
-        with ResourceSampler(include_mongod) as sampler:
+        with ResourceSampler(include_mongod, children=children) as sampler:
             t0 = time.perf_counter()
             fingerprint = fn()
             seconds = time.perf_counter() - t0

@@ -3,7 +3,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError, api } from "./client";
 import type {
-  BacktestDoc, BacktestSummary, BarSeries, Bar, CompareResponse, Exchange, Health, IndicatorSeries, IndicatorRow, Instrument,
+  BacktestDoc, BacktestSummary, BarSeries, Bar, BenchmarkScaling, CompareResponse, Exchange, Health, IndicatorSeries, IndicatorRow, Instrument,
   InstrumentDetail, Interval, Job, Leaderboard, LatestPrice, Overview, Paged, PriceHit, PricesResponse, ReportCatalog, StrategiesResponse, Stats,
   UploadResult,
 } from "./types";
@@ -38,6 +38,9 @@ export const useHealth = () =>
   useQuery({ queryKey: ["health"], queryFn: () => api.get<Health>("/api/health"), refetchInterval: 30_000, retry: false });
 
 export const useStats = () => useQuery({ queryKey: ["stats"], queryFn: () => api.get<Stats>("/api/stats"), staleTime: 60_000 });
+
+export const useBenchmarkScaling = () =>
+  useQuery({ queryKey: ["benchmarks", "scaling"], queryFn: () => api.get<BenchmarkScaling>("/api/benchmarks/scaling"), staleTime: 60_000 });
 
 // ------------------------------------------------------------------------------------------ instruments
 export interface InstrumentFilters {

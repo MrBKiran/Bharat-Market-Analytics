@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import contract from "./contract.json";
 import {
-  BACKTESTS_LIST, BACKTEST_DOC, BARS_DESC, BENCHMARKS, COMPARE, ERROR_BODY, HEALTH, INDICATORS, INSTRUMENTS_LIST, JOBS, LATEST, LEADERBOARD, OVERVIEW,
+  BACKTESTS_LIST, BACKTEST_DOC, BARS_DESC, BENCHMARKS, BENCHMARK_SCALING, COMPARE, ERROR_BODY, HEALTH, INDICATORS, INSTRUMENTS_LIST, JOBS, LATEST, LEADERBOARD, OVERVIEW,
   PRICES, PROCESSING_START, RELIANCE_DETAIL, REPORTS_CATALOG, SEARCH, SECTORS, STATS, STRATEGIES, UPLOAD_RESULT,
 } from "./utils";
 
@@ -50,7 +50,7 @@ export function check(data: unknown, fields: string[]): string[] {
 const fixtures: Record<string, unknown> = {
   health: HEALTH, instruments_list: INSTRUMENTS_LIST, instrument_detail: RELIANCE_DETAIL, prices: PRICES, latest: LATEST, indicators: INDICATORS, search: SEARCH,
   sectors: SECTORS, overview: OVERVIEW, compare: COMPARE, stats: STATS, strategies: STRATEGIES, backtest_run: BACKTEST_DOC, backtests_list: BACKTESTS_LIST,
-  leaderboard: LEADERBOARD, jobs: JOBS, benchmarks: BENCHMARKS, upload_result: UPLOAD_RESULT, processing_start: PROCESSING_START, reports_catalog: REPORTS_CATALOG, error: ERROR_BODY,
+  leaderboard: LEADERBOARD, jobs: JOBS, benchmarks: BENCHMARKS, benchmarks_scaling: BENCHMARK_SCALING, upload_result: UPLOAD_RESULT, processing_start: PROCESSING_START, reports_catalog: REPORTS_CATALOG, error: ERROR_BODY,
 };
 const entries = Object.entries(contract as Record<string, unknown>).filter(([name]) => !name.startsWith("_")) as [string, string[]][];
 

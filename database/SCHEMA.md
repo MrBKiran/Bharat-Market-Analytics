@@ -56,7 +56,8 @@ Daily bars stay in a regular collection because they need exact de-duplication a
 | `import_files` | One document per imported file: SHA-256, source, row counts, retrieval time. Blocks importing the same file twice. | `sha256` |
 | `intraday_coverage` | First/last timestamp and row count already loaded per `exchange, symbol, interval, source`. | `exchange, symbol, interval, source` |
 | `data_quality_reports` | Cleaning results per dataset (valid / rejected / duplicate / repaired). | none |
-| `benchmark_results` | Performance test results per technology, operation and record count. | none |
+| `benchmark_results` | Performance test results per technology, operation and record count. `is_synthetic` separates the generated Phase 14 data from real market data; `answers_match` says every engine agreed on the job. | none |
+| `benchmark_runs` | Phase 14: one document per scale-test run (one data size): the machine and settings, the dataset's description and every job's outcome, including jobs that **failed or were skipped** (they have no timing, so they are not in `benchmark_results`). | none |
 | `adjusted_prices` | PROCESSED daily bars: one split-adjusted series per instrument, rebuilt from the raw collections. | `symbol, exchange, interval, date` |
 
 ## Key document shapes
