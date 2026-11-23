@@ -1,0 +1,47 @@
+# BharatMarket Analytics with Docker:  docker compose up --build     then open http://127.0.0.1:8000
+# Full guide: docs/DOCKER.md. Settings you may override (shell variables or a .env file next to this file):
+#   APP_PORT (8000)   ENVIRONMENT (development)   API_KEY (none)   MONGO_CACHE_GB (2)   WITH_SPARK (0)
+name: bharatmarket
+
+services:
+  mongo:
+    image: mongo:8.2
+    restart: unless-stopped
+    # Limit MongoDB's cache so it does not take half of the machine's memory (its default).
+    command: ["--wiredTigerCacheSizeGB", "${MONGO_CACHE_GB:-2}"]
+    volumes:
+      - mongo-data:/data/db
+    # No "ports:" on purpose: only the app (on the private compose network) can reach the database.
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        WITH_SPARK: ${WITH_SPARK:-0}
+    image: bharatmarket-analytics:latest
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB_NAME: BharatMarketDB
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      API_KEY: ${API_KEY:-}
+    ports:
+      # Bound to this computer only. To share it on your network, change to "${APP_PORT:-8000}:8000" AFTER reading docs/DOCKER.md (security).
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    volumes:
+      - ./data:/app/data        # downloaded and imported files: shared with the host so you can drop files in data/raw
+      - app-logs:/app/logs
+
+volumes:
+  mongo-data:
+  app-logs:

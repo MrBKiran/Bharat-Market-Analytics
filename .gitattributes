@@ -1,0 +1,4 @@
+# The Docker entry script runs inside Linux: Windows line endings (CRLF) would break its first line ("/bin/sh^M: not found").
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker/Dockerfile text eol=lf

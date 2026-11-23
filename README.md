@@ -2,13 +2,13 @@
 
 MongoDB-based Indian stock market big-data storage, processing and analytics system.
 
-> Status: **Phase 14 complete** (performance tests from 100,000 to 10 million records; CSV, Excel and PDF reports; dashboard and API served together at one address; React dashboard with 9 pages; 37 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
-> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md) | [docs/REPORTS.md](docs/REPORTS.md) | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | [docs/RUNNING.md](docs/RUNNING.md)
+> Status: **All 15 phases complete** (Docker: the whole app starts with one command, `docker compose up --build`; performance tests from 100,000 to 10 million records; CSV, Excel and PDF reports; dashboard and API served together at one address; React dashboard with 9 pages; 37 REST endpoints; 5.76 million real rows imported, cleaned, adjusted; 1.5 million indicator documents, 21 analyses, 6 Spark analyses and a pandas / MongoDB / Spark benchmark; 7 backtested strategies with 343 stored runs; NSE/BSE bhavcopy files are optional and manual).
+> Docs: [database/SCHEMA.md](database/SCHEMA.md) | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | [docs/IMPORTER.md](docs/IMPORTER.md) | [docs/PROCESSING.md](docs/PROCESSING.md) | [docs/ANALYTICS.md](docs/ANALYTICS.md) | [docs/BIGDATA.md](docs/BIGDATA.md) | [docs/BACKTESTING.md](docs/BACKTESTING.md) | [docs/API.md](docs/API.md) | [docs/DASHBOARD.md](docs/DASHBOARD.md) | [docs/REPORTS.md](docs/REPORTS.md) | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | [docs/RUNNING.md](docs/RUNNING.md) | [docs/DOCKER.md](docs/DOCKER.md)
 
 ## Requirements (Windows)
 
-Python 3.11, Node.js 24, MongoDB Community 8.x (running on `localhost:27017`),
-JDK 17 (for PySpark, Phase 8), Docker Desktop (Phase 15).
+**Either** Docker Desktop alone (see "Run with Docker" below: nothing else to install) **or** a local setup: Python 3.11, Node.js 24, MongoDB Community 8.x (running on
+`localhost:27017`) and, for PySpark (Phase 8), JDK 17.
 
 ## Setup
 
@@ -36,6 +36,15 @@ copy .env.example .env
 # open http://127.0.0.1:8000        (API docs: /docs)        later: scripts\serve.py
 ```
 See [docs/RUNNING.md](docs/RUNNING.md) for the first-time order, the development modes and how to expose it safely.
+
+## Run with Docker
+
+```powershell
+docker compose up --build        # MongoDB + API + dashboard; then open http://127.0.0.1:8000
+docker compose exec app python scripts/import_data.py import data/raw/yfinance data/raw/kaggle --auto-register   # fill the (new, empty) database
+```
+The database lives in a Docker volume and survives restarts and rebuilds; MongoDB is not exposed outside the compose network and the app listens on this computer only.
+If port 8000 is taken, `$env:APP_PORT=8765; docker compose up -d`. How to copy your existing database in, back it up, add Spark, and what each setting does: [docs/DOCKER.md](docs/DOCKER.md).
 
 ## Develop the dashboard
 
@@ -139,7 +148,7 @@ are defused. Details, limits and safety rules: [docs/REPORTS.md](docs/REPORTS.md
 | `data/` | Raw, processed, downloaded and uploaded files (git-ignored) |
 | `tests/` | Automated tests |
 | `docs/` | Documentation |
-| `docker/` | Docker configuration (Phase 15) |
+| `docker/`, `docker-compose.yml` | Dockerfile, start-up script and the two-container setup (Phase 15) |
 
 ## Security notes
 

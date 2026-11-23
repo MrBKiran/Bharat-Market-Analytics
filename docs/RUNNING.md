@@ -74,7 +74,7 @@ Two defects found this way and fixed: the dry-run summary said "nothing was stor
 `serve.py --host 0.0.0.0` makes the app reachable from your network and prints a warning, because **reading data has no login**. The API key protects only
 actions that change data. Before exposing it: set `API_KEY` in `.env`, set `ENVIRONMENT=production` (which disables writes when no key is set), put
 authentication or a firewall in front, and serve over HTTPS through a reverse proxy (the rate limiter trusts the direct connection address, not
-`X-Forwarded-For`). Docker packaging comes in Phase 15.
+`X-Forwarded-For`). The Docker setup ([DOCKER.md](DOCKER.md)) already publishes only on `127.0.0.1` and keeps MongoDB private.
 
 ## Troubleshooting
 

@@ -76,7 +76,7 @@ Open http://localhost:5173. In development Vite forwards every `/api` request to
   "today's" numbers (it says so) and the Stock page shows a notice; intraday bars exist only for the Nifty indices; BSE contains only
   Sensex and BSE 500; chart prices are split-adjusted, not dividend-adjusted.
 - The production build is static files in `frontend/dist`. The API serves them itself (`scripts\serve.py`: one address, no Vite, strict
-  content-security policy; see [RUNNING.md](RUNNING.md)). Docker packaging comes in Phase 15.
+  content-security policy; see [RUNNING.md](RUNNING.md)). To run it all in containers instead, see [DOCKER.md](DOCKER.md).
 
 ## Layout
 

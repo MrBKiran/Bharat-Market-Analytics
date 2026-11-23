@@ -1,0 +1,21 @@
+# Python packages the DOCKER image installs: requirements.txt without what only a developer machine needs
+# (pytest, httpx and pypdfium2 are for the tests; PySpark is added only when you build with WITH_SPARK=1, together with Java 21).
+# tests/test_docker_files.py checks every line here against requirements.txt, so the two cannot drift apart.
+
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+pydantic>=2.7,<3.0
+pydantic-settings>=2.3,<3.0
+python-multipart>=0.0.9
+pymongo>=4.8,<5.0
+pandas>=2.2,<3.0
+numpy>=1.26,<3.0
+ta>=0.11,<1.0
+openpyxl>=3.1,<4.0
+reportlab>=4.2,<5.0
+requests>=2.32,<3.0
+yfinance>=0.2.40
+kaggle>=1.6,<2.0
+six>=1.16
+pyarrow>=15
+psutil>=5.9,<8.0

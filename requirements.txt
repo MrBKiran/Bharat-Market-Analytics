@@ -17,8 +17,7 @@ numpy>=1.26,<3.0
 ta>=0.11,<1.0                # technical indicators
 openpyxl>=3.1,<4.0           # Excel import/export
 
-# --- Charts and reports ---
-plotly>=5.22,<7.0
+# --- Reports (charts in the dashboard are drawn in the browser with lightweight-charts, see frontend/package.json) ---
 reportlab>=4.2,<5.0          # PDF reports
 
 # --- Data collection ---

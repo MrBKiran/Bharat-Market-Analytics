@@ -1,0 +1,33 @@
+# Keep secrets, data and bulk out of the image. The build context is the project root.
+.git
+.gitignore
+.gitattributes
+.claude
+
+# Secrets: never copied into an image (the container gets its settings from environment variables)
+.env
+.env.*
+!.env.example
+kaggle.json
+
+# Python and Node leftovers (the image installs its own)
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+node_modules
+frontend/node_modules
+frontend/dist
+
+# Data and logs are mounted at run time, not baked in
+data
+logs
+download
+echo
+
+# Not needed to run the app
+tests
+docs
+database
+*.md
+docker-compose.yml

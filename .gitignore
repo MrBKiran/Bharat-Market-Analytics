@@ -20,6 +20,7 @@ data/processed/*
 data/downloads/*
 data/uploads/*
 data/rejected/
+data/benchmark/
 logs/*
 !.gitkeep
 !data/**/.gitkeep
